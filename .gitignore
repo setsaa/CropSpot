@@ -187,3 +187,9 @@ yarn-error.log*
 
 # ignore the "Dataset" folder
 Dataset/
+
+# ignore the trained models (temporarily)
+*.h5
+
+# Other
+local_testing.ipynb
