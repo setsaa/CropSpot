@@ -187,3 +187,6 @@ yarn-error.log*
 
 # ignore the "Dataset" folder
 Dataset/
+
+# Other
+local_testing.ipynb
