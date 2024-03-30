@@ -190,3 +190,6 @@ Dataset/
 
 # Other
 local_testing.ipynb
+
+# ignore the trained models (temporarily)
+*.h5
