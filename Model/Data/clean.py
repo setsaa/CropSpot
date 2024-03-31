@@ -13,32 +13,15 @@ Arguments:
 Author:
     Sigurd Johnsen Setså (@setsaa)
 """
-import os
 import argparse
 import logging
+import os
 
-from PIL import Image
 import numpy as np
+from PIL import Image
 from tqdm import tqdm
 
-
-def load_images(folder_path) -> list:
-    """ Load images from the specified folder.
-
-    Args:
-        folder_path: Path to folder containing images.
-
-    Returns:
-        images (list): List of images.
-    """
-    images = []
-    for file in tqdm(os.listdir(folder_path), "Loading images"):
-        img_path = os.path.join(folder_path, file)
-        img = Image.open(img_path)
-        img = np.array(img).flatten()
-        images.extend(img)
-    logging.info("Images loaded.")
-    return images
+from Model.Data.utils import load_images
 
 
 def detect_outliers(folder_path):
@@ -85,14 +68,14 @@ def remove_non_jpg(folder_path):
     """
     logging.info("Removing non-jpg images…")
     count = 0
-    for file in os.listdir(folder_path):
+    for file in tqdm(os.listdir(folder_path), "Removing non-jpg files"):
         if not file.endswith('.jpg'):
             os.remove(f'{folder_path}/{file}')
             count += 1
     print(f'Removed {count} non-jpg files.')
 
 
-def check_image_dimensions(folder_path):
+def validate_image_dimensions(folder_path) -> bool:
     """ Check the dimensions of the images in the folder.
 
     Args:
@@ -100,13 +83,16 @@ def check_image_dimensions(folder_path):
     """
     logging.info("Checking image dimensions…")
     dimensions = []
-    for file in os.listdir(folder_path):
+    for file in tqdm(os.listdir(folder_path), "Validating image dimensions"):
         img = Image.open(f'{folder_path}/{file}')
         dimensions.append(img.size)
+
     if len(set(dimensions)) > 1:
         print('Images have different dimensions.')
-    else:
-        print('All images have the dimension ' + str(dimensions[0]))
+        return False
+    
+    print('All images have the dimension ' + str(dimensions[0]))
+    return True
 
 
 def remove_corrupt_images(folder_path):
@@ -155,7 +141,7 @@ if __name__ == '__main__':
     # Run cleaning functions
     remove_non_jpg(args.path)
     remove_corrupt_images(args.path)
-    check_image_dimensions(args.path)
+    validate_image_dimensions(args.path)
     if not args.no_outliers:
         detect_outliers(args.path)
 
