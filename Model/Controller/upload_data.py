@@ -1,16 +1,11 @@
 import os
 import argparse
-
-# import logging
 from clearml import Task, Dataset
-
-# # Set up logging
-# logging.basicConfig(level=logging.INFO)
 
 
 def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     """
-    Upload a local dataset to a ClearML project.
+    Upload local dataset to a ClearML project.
 
     Parameters:
     dataset_dir (str): Path to the local dataset directory.
@@ -45,7 +40,6 @@ def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     dataset.finalize()
 
     print(f"Dataset uploaded with ID: {dataset.id}")
-    # logging.info(f"Dataset uploaded with ID: {dataset.id}")
 
     return dataset.id
 
