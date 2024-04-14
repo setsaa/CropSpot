@@ -2,8 +2,8 @@ import argparse
 import logging
 
 
+# def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
 def preprocess_images(dataset_dir, preprocessed_dir):
-    # def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
     import logging
     import numpy as np
     import os
