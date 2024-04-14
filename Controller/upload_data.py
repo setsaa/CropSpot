@@ -3,6 +3,11 @@ import argparse
 from clearml import Task, Dataset
 
 
+"""
+    To be run run locally, this script uploads a local dataset to ClearML.
+"""
+
+
 def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     """
     Upload local dataset to a ClearML project.
