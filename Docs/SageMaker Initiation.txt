@@ -1,0 +1,9 @@
+pip install clearml
+
+pip install clearml-agent
+
+clearml-agent init
+
+clearml-agent daemon --queue "helldiver" --detached
+
+clearml-agent daemon --queue "helldiver" --detached --stop
