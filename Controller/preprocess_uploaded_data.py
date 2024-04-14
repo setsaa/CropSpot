@@ -91,7 +91,7 @@ def preprocess_images(dataset_dir, preprocessed_dir):
     print(f"Images in {category}: {new_count} (from {len(os.listdir(dataset_dir))})")
 
 
-def upload_preprocessed_dataset(raw_dataset_id, project_name, queue_name):
+def upload_preprocessed_dataset(raw_dataset_name, project_name, queue_name):
     import os
     from clearml import Dataset, Task
     from pathlib import Path
@@ -104,7 +104,7 @@ def upload_preprocessed_dataset(raw_dataset_id, project_name, queue_name):
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     # Access the raw dataset
-    raw_dataset = Dataset.get(dataset_id=raw_dataset_id)
+    raw_dataset = Dataset.get(dataset_name=raw_dataset_name)
     raw_data_path = raw_dataset.get_local_copy()
 
     # Create directories for preprocessed data
@@ -120,7 +120,7 @@ def upload_preprocessed_dataset(raw_dataset_id, project_name, queue_name):
     processed_dataset = Dataset.create(
         dataset_name=raw_dataset.name + "_preprocessed",
         dataset_project=project_name,
-        parent_datasets=[raw_dataset_id],
+        parent_datasets=[raw_dataset],
     )
 
     # Add the preprocessed images to the dataset
@@ -140,7 +140,7 @@ def upload_preprocessed_dataset(raw_dataset_id, project_name, queue_name):
             item.rmdir()
     preprocessed_dir.rmdir()
 
-    return processed_dataset.id
+    return processed_dataset.id, processed_dataset.name
 
 
 if __name__ == "__main__":
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
-    parser.add_argument("--dataset_id", type=str, default="de2fef4e1302424792d1f4cfca579166", help="ID of the raw dataset")
+    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
     parser.add_argument("--clearml_project", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
     # Upload preprocessed datasets
     processed_dataset_id = upload_preprocessed_dataset(
-        raw_dataset_id=args.dataset_id,
+        raw_dataset_name=args.dataset_name,
         project_name=args.clearml_project,
         queue_name=args.queue_name,
     )

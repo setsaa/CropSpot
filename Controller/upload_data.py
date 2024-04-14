@@ -44,9 +44,9 @@ def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     # Finalize the dataset
     dataset.finalize()
 
-    print(f"Dataset uploaded with ID: {dataset.id}")
+    print(f"Dataset uploaded with ID: {dataset.id} and name: {dataset.name}")
 
-    return dataset.id
+    return dataset.id, dataset.name
 
 
 if __name__ == "__main__":
