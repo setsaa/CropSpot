@@ -7,7 +7,7 @@ def create_data_pipeline(
 ):
     from clearml import PipelineController, Task
     from upload_data import upload_local_dataset
-    from preprocess_uploaded_data import upload_preprocessed_dataset, preprocess_images
+    from preprocess_data import upload_preprocessed_dataset, preprocess_images
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
@@ -33,11 +33,11 @@ def create_data_pipeline(
             "dataset_dir": "CropSpot\Dataset\Raw Data",
             "clearml_project_name": "${pipeline.dataset_project}",
             "dataset_name": "${pipeline.raw_dataset_name}",
-            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.data_processing,
         task_name="Upload Raw Data",
         function_return=["raw_dataset_id"],
+        execution_queue=queue_name,
         cache_executed_step=False,
     )
 
@@ -54,6 +54,7 @@ def create_data_pipeline(
         task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id"],
         helper_functions=[preprocess_images],
+        execution_queue=queue_name,
         cache_executed_step=False,
     )
 

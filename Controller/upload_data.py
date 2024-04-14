@@ -8,7 +8,7 @@ from clearml import Task, Dataset
 """
 
 
-def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name, queue_name):
+def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     """
     Upload local dataset to a ClearML project.
 
@@ -57,10 +57,9 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_dir", type=str, required=True, help="Path to the dataset directory")
     parser.add_argument("--clearml_project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--dataset_name", type=str, required=True, help="ClearML dataset name")
-    parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
 
     # Parse command-line arguments
     args = parser.parse_args()
 
     # Call function with the parsed arguments
-    upload_local_dataset(args.dataset_dir, args.clearml_project_name, args.dataset_name, args.queue_name)
+    upload_local_dataset(args.dataset_dir, args.clearml_project_name, args.dataset_name)
