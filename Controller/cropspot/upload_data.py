@@ -13,12 +13,12 @@ def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
     Upload local dataset to a ClearML project.
 
     Parameters:
-    dataset_dir (str): Path to the local dataset directory.
-    clearml_project_name (str): Name of the ClearML project.
-    dataset_name (str): Name of the dataset in ClearML.
+        dataset_dir (str): Path to the local dataset directory.
+        clearml_project_name (str): Name of the ClearML project.
+        dataset_name (str): Name of the dataset in ClearML.
 
     Returns:
-    str: ID of the uploaded dataset.
+        name and ID of the uploaded dataset.
     """
 
     # Create a ClearML task

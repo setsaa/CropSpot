@@ -1,13 +1,5 @@
 import argparse
 import logging
-import numpy as np
-import os
-import random
-import shutil
-from PIL import Image
-from tqdm import tqdm
-from clearml import Dataset, Task
-from pathlib import Path
 
 
 def preprocess_images(dataset_dir, preprocessed_dir):
@@ -92,6 +84,17 @@ def preprocess_images(dataset_dir, preprocessed_dir):
 
 
 def upload_preprocessed_dataset(raw_dataset_name, project_name, queue_name):
+    """
+    Preprocess images in the raw dataset and upload the preprocessed images to ClearML.
+
+    Args:
+        raw_dataset_name: Name of the raw dataset.
+        project_name: Name of the project for the processed dataset.
+        queue_name: Name of the queue for remote execution.
+
+    Returns:
+        ID and name of the processed dataset.
+    """
     import os
     from clearml import Dataset, Task
     from pathlib import Path

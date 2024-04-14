@@ -1,8 +1,3 @@
-from clearml import PipelineController, Task
-from CropSpot.Controller.upload_data import upload_local_dataset
-from CropSpot.Controller.preprocess_uploaded_data import upload_preprocessed_dataset, preprocess_images
-
-
 def create_data_pipeline(
     pipeline_name: str = "CropSpot Data Pipeline",
     dataset_project: str = "CropSpot",
@@ -11,8 +6,8 @@ def create_data_pipeline(
     queue_name: str = "helldiver",
 ):
     from clearml import PipelineController, Task
-    from CropSpot.Controller.upload_data import upload_local_dataset
-    from CropSpot.Controller.preprocess_uploaded_data import upload_preprocessed_dataset, preprocess_images
+    from cropspot.upload_data import upload_local_dataset
+    from cropspot.preprocess_uploaded_data import upload_preprocessed_dataset, preprocess_images
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
