@@ -1,22 +1,11 @@
 import argparse
-import os
-import matplotlib.pyplot as plt
-import numpy as np
-from clearml import Task, Dataset, OutputModel
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications import ResNet50V2
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
 
-def train_model(train_dataset_id, test_dataset_id, project_name, queue_name):
-    import argparse
+def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
-    import numpy as np
     from clearml import Task, Dataset, OutputModel
+    import tensorflow as tf
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
     from tensorflow.keras.applications import ResNet50V2
     from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
@@ -24,20 +13,19 @@ def train_model(train_dataset_id, test_dataset_id, project_name, queue_name):
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-    task = Task.init(project_name=project_name, task_name="train_model")
+    task = Task.init(project_name=project_name, task_name="Model Training")
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
-    # Load the training dataset
-    train_dataset = Dataset.get(dataset_id=train_dataset_id)
-    train_dataset_path = train_dataset.get_local_copy()
+    # Load preprocessed dataset
+    dataset = Dataset.get(dataset_id=preprocessed_dataset_id)
+    dataset_path = dataset.get_local_copy()
 
-    # Load the testing dataset
-    test_dataset = Dataset.get(dataset_id=test_dataset_id)
-    test_dataset_path = test_dataset.get_local_copy()
+    # Get first category
+    first_category = os.listdir(dataset_path)[0]
 
     # Get image size from the first image from the healthy directory
-    first_image_file = os.listdir(f"{train_dataset_path}/healthy")[0]
-    img = plt.imread(f"{train_dataset_path}/healthy/{first_image_file}")
+    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
     img_height, img_width, _ = img.shape
     img_size = min(img_height, img_width)
 
@@ -45,11 +33,12 @@ def train_model(train_dataset_id, test_dataset_id, project_name, queue_name):
     batch_size = 32
 
     # Data augmentation and preprocessing
-    train_datagen = ImageDataGenerator(rescale=1.0 / 255, rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.2, shear_range=0.2, brightness_range=[0.2, 1.0])
-    test_datagen = ImageDataGenerator(rescale=1.0 / 255, rotation_range=20, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.2, shear_range=0.2, brightness_range=[0.2, 1.0])
+    datagen = ImageDataGenerator(
+        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=split_ratio
+    )
 
-    train_generator = train_datagen.flow_from_directory(train_dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
-    test_generator = test_datagen.flow_from_directory(test_dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
+    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
+    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
 
     # Configurations
     epochs = 200
@@ -100,7 +89,7 @@ def train_model(train_dataset_id, test_dataset_id, project_name, queue_name):
     # Make sure the model is accessible
     output_model.publish()
 
-    task.upload_artifact("trained_model", artifact_object=model_file_name)
+    task.upload_artifact("Trained Model", artifact_object=model_file_name)
 
     if os.path.exists("CropSpot_Model.h5"):
         os.remove("CropSpot_Model.h5")
@@ -110,12 +99,13 @@ def train_model(train_dataset_id, test_dataset_id, project_name, queue_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot Model")
-    parser.add_argument("--train_dataset_id", type=str, required=True, help="ClearML training dataset id")
-    parser.add_argument("--test_dataset_id", type=str, required=True, help="ClearML testing dataset id")
+    parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
+    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
+
     args = parser.parse_args()
 
-    model_id = train_model(args.train_dataset_id, args.test_dataset_id, args.project_name)
+    model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
 
-    print(f"Model ID: {model_id}")
+    print(f"Model trained with ID: {model_id}")
