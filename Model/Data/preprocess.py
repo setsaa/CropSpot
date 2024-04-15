@@ -17,8 +17,8 @@ import os
 
 from tqdm import tqdm
 
-from Model.Data.clean import validate_image_dimensions
-from Model.Data.utils import load_images
+# from Model.Data.clean import validate_image_dimensions
+# from Model.Data.utils import load_images
 
 
 def resize_images(folder_path, dimensions) -> list:
