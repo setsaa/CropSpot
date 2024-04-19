@@ -106,11 +106,13 @@ def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot Model")
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
-    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
+    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
 
     args = parser.parse_args()
+
+    print(args)
 
     model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
 
