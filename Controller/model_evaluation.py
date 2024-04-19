@@ -1,16 +1,17 @@
 import argparse
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
-from itertools import cycle
-from math import ceil
-import pickle as pkl
+
 
 def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
+    from itertools import cycle
+    from math import ceil
+    import pickle as pkl
     import tensorflow as tf
+    from sklearn.preprocessing import label_binarize
 
     # Load the model
     model = tf.keras.models.load_model(model_path)
@@ -20,10 +21,8 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
         history = pkl.load(file)
 
     # Data generator for evaluation
-    test_datagen = ImageDataGenerator(rescale=1./255)
-    test_generator = test_datagen.flow_from_directory(
-        test_data_dir, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=False, seed=42
-    )
+    test_datagen = ImageDataGenerator(rescale=1.0 / 255)
+    test_generator = test_datagen.flow_from_directory(test_data_dir, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=False, seed=42)
 
     # Calculate the correct number of steps per epoch
     steps = ceil(test_generator.samples / test_generator.batch_size)
@@ -31,7 +30,7 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     # Generate predictions
     predictions = model.predict(test_generator, steps=steps)
     y_pred = np.argmax(predictions, axis=1)
-    y_true = test_generator.classes[:len(y_pred)]
+    y_true = test_generator.classes[: len(y_pred)]
 
     # Evaluate the model
     score = model.evaluate(test_generator)
@@ -50,8 +49,6 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     plt.title("Confusion Matrix")
     plt.show()
 
-    # Binarize the output for plotting the ROC curve
-    from sklearn.preprocessing import label_binarize
     y_test_binarized = label_binarize(y_true, classes=np.arange(test_generator.num_classes))
 
     # Compute ROC curve and ROC area for each class
@@ -72,6 +69,7 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     plt.title("Multi-class ROC")
     plt.legend(loc="lower right")
     plt.show()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate ResNet Model")

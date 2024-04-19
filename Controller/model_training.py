@@ -2,9 +2,9 @@ import argparse
 
 
 def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
+    from clearml import Task, Dataset, OutputModel
     import os
     import matplotlib.pyplot as plt
-    from clearml import Task, Dataset, OutputModel
     import tensorflow as tf
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
     from tensorflow.keras.applications import ResNet50V2
@@ -14,7 +14,7 @@ def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
     task = Task.init(project_name=project_name, task_name="Model Training")
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    task.execute_remotely(queue_name=queue_name, exit_process=True, requirements_file="requirements.txt")
 
     # Load preprocessed dataset
     dataset = Dataset.get(dataset_id=preprocessed_dataset_id)
