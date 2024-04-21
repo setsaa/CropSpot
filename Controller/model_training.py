@@ -1,7 +1,7 @@
 import argparse
 
 
-def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
+def train_model(preprocessed_dataset_id, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
     import tensorflow as tf
@@ -34,7 +34,7 @@ def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=split_ratio
+        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.8
     )
 
     train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
@@ -102,12 +102,13 @@ if __name__ == "__main__":
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
-    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
+    #parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
 
     args = parser.parse_args()
 
     print(args)
 
-    model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
+    #model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
+    model_id = train_model(args.preprocessed_dataset_id, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
