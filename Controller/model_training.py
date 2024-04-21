@@ -2,7 +2,6 @@ import argparse
 
 
 def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
-    from clearml import Task, Dataset, OutputModel
     import os
     import matplotlib.pyplot as plt
     import tensorflow as tf
@@ -12,9 +11,10 @@ def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
     from tensorflow.keras.models import Model
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="Model Training")
-    task.execute_remotely(queue_name=queue_name, exit_process=True, requirements_file="requirements.txt")
+    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     # Load preprocessed dataset
     dataset = Dataset.get(dataset_id=preprocessed_dataset_id)
@@ -100,11 +100,13 @@ def train_model(preprocessed_dataset_id, split_ratio, project_name, queue_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot Model")
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
-    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
+    parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
 
     args = parser.parse_args()
+
+    print(args)
 
     model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
 
