@@ -1,3 +1,19 @@
+import os
+
+os.system("pip install numpy==1.23.5")
+os.system("pip install matplotlib==3.7.3")
+os.system("pip install scipy==1.10.1")
+os.system("pip install protobuf==3.17.2")
+
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import ResNet50V2
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from clearml import Task, Dataset, OutputModel
 import argparse
 
 
@@ -102,13 +118,13 @@ if __name__ == "__main__":
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
-    #parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
+    # parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
 
     args = parser.parse_args()
 
     print(args)
 
-    #model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
+    # model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
     model_id = train_model(args.preprocessed_dataset_id, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
