@@ -1,28 +1,46 @@
+import os
+import argparse
+from clearml import PipelineController, Task
+from upload_data import upload_dataset, download_dataset
+from preprocess_data import preprocess_dataset, preprocess_images
+
+
 def create_data_pipeline(
     pipeline_name: str = "CropSpot Data Pipeline",
-    dataset_project: str = "CropSpot",
-    raw_dataset_name: str = "TomatoDiseaseDataset",
-    processed_dataset_name: str = "TomatoDiseaseDataset_preprocessed",
+    project_name: str = "CropSpot",
+    dataset_name: str = "TomatoDiseaseDataset",
     queue_name: str = "helldiver",
 ):
     from clearml import PipelineController, Task
-    from upload_data import upload_dataset
-    from preprocess_data import upload_preprocessed_dataset, preprocess_images
+    from upload_data import upload_dataset, download_dataset
+    from preprocess_data import preprocess_dataset, preprocess_images
+
+    """
+    Create a ClearML pipeline for the CropSpot project.
+    
+    Parameters:
+        pipeline_name (str): Name of the pipeline.
+        project_name (str): Name of the ClearML project.
+        dataset_name (str): Name of the dataset.
+        queue_name (str): Name of the queue to execute the pipeline.
+        
+    Returns:
+        None
+    """
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
         name=pipeline_name,
-        project=dataset_project,
+        project=project_name,
         version="1.0",
         add_pipeline_tags=True,
         auto_version_bump=True,
-        target_project=dataset_project,
+        target_project=project_name,
     )
 
     # Add pipeline-level parameters with defaults from function arguments
-    pipeline.add_parameter(name="dataset_project", default=dataset_project)
-    pipeline.add_parameter(name="raw_dataset_name", default=raw_dataset_name)
-    pipeline.add_parameter(name="processed_dataset_name", default=processed_dataset_name)
+    pipeline.add_parameter(name="project_name", default=project_name)
+    pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
 
     # Step 1: Upload Raw Data
@@ -30,13 +48,14 @@ def create_data_pipeline(
         name="Data Upload",
         function=upload_dataset,
         function_kwargs={
-            "dataset_dir": "CropSpot\Dataset\Raw Data",
-            "clearml_project_name": "${pipeline.dataset_project}",
-            "dataset_name": "${pipeline.raw_dataset_name}",
+            "project_name": "${pipeline.project_name}",
+            "dataset_name": "${pipeline.dataset_name}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.data_processing,
         task_name="Upload Raw Data",
-        function_return=["raw_dataset_id"],
+        function_return=["raw_dataset_id", "dataset_name"],
+        helper_functions=[download_dataset],
         execution_queue=queue_name,
         cache_executed_step=False,
     )
@@ -44,10 +63,10 @@ def create_data_pipeline(
     # Step 2: Preprocess Data
     pipeline.add_function_step(
         name="Data Preprocessing",
-        function=upload_preprocessed_dataset,
+        function=preprocess_dataset,
         function_kwargs={
-            "dataset_name": "${pipeline.raw_dataset_name}",
-            "project_name": "${pipeline.dataset_project}",
+            "dataset_name": "${pipeline.dataset_name}",
+            "project_name": "${pipeline.project_name}",
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.data_processing,
@@ -60,42 +79,36 @@ def create_data_pipeline(
 
     # Start the pipeline
     pipeline.start(queue=queue_name)
-    print("CropSpot pipeline initiated. Check ClearML for progress.")
+    print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
 
 
 if __name__ == "__main__":
-    import argparse
-
-    # Create the parser
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
     parser.add_argument(
         "--pipeline_name",
         type=str,
+        required=False,
         default="CropSpot Data Pipeline",
         help="Name of the pipeline",
     )
     parser.add_argument(
-        "--dataset_project",
+        "--project_name",
         type=str,
+        required=False,
         default="CropSpot",
         help="Project name for datasets",
     )
     parser.add_argument(
-        "--raw_dataset_name",
+        "--dataset_name",
         type=str,
+        required=False,
         default="TomatoDiseaseDataset",
         help="Name for the raw dataset",
     )
     parser.add_argument(
-        "--processed_dataset_name",
-        type=str,
-        default="TomatoDiseaseDataset_preprocessed",
-        help="Name for the processed dataset",
-    )
-    parser.add_argument(
         "--queue_name",
         type=str,
-        required=True,
+        required=False,
         default="helldiver",
         help="ClearML queue name",
     )
@@ -106,8 +119,7 @@ if __name__ == "__main__":
     # Call the function with the parsed arguments
     create_data_pipeline(
         pipeline_name=args.pipeline_name,
-        dataset_project=args.dataset_project,
-        raw_dataset_name=args.raw_dataset_name,
-        processed_dataset_name=args.processed_dataset_name,
+        project_name=args.project_name,
+        dataset_name=args.dataset_name,
         queue_name=args.queue_name,
     )

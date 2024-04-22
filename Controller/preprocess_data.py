@@ -91,7 +91,7 @@ def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
     print(f"Images in {category}: {new_count} (from {len(os.listdir(dataset_dir))})")
 
 
-def upload_preprocessed_dataset(raw_dataset_name, project_name, queue_name):
+def preprocess_dataset(raw_dataset_name, project_name, queue_name):
     """
     Preprocess images in the raw dataset and upload the preprocessed images to ClearML.
 
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Upload preprocessed datasets
-    processed_dataset_id = upload_preprocessed_dataset(
+    processed_dataset_id = preprocess_dataset(
         raw_dataset_name=args.dataset_name,
         project_name=args.project_name,
         queue_name=args.queue_name,
