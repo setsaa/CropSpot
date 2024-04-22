@@ -1,147 +1,153 @@
 import os
-
-os.system("pip install scipy==1.10.1")
-os.system("pip install protobuf==3.9.2")
-os.system("pip install numpy==1.23.5")
-os.system("pip install matplotlib==3.7.3")
-os.system("pip install tensorflow==2.14.0")
-os.system("pip install absl-py==1.2")
-os.system("pip install keras==2.14.0")
-os.system("pip install tensorboard==2.14.0")
-os.system("pip install tensorflow-estimator==2.14.0")
-os.system("pip install wrapt==1.11.0")
-
-import matplotlib.pyplot as plt
-import tensorflow as tf
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import ResNet50V2
-from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from keras.models import Model
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from clearml import Task, Dataset, OutputModel
 import argparse
+import numpy as np
+from sklearn.model_selection import train_test_split
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import transforms, models, datasets
+from torch.utils.data import DataLoader, Subset
+from clearml import Task, Dataset, OutputModel
 
 
-def train_model(preprocessed_dataset_id, project_name, queue_name):
+def train_model(dataset_id, project_name, queue_name):
     import os
-    import matplotlib.pyplot as plt
-    import tensorflow as tf
-    from keras.preprocessing.image import ImageDataGenerator
-    from keras.applications import ResNet50V2
-    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from keras.models import Model
-    from keras.optimizers import Adam
-    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    import argparse
+    import numpy as np
+    from sklearn.model_selection import train_test_split
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torchvision import transforms, models, datasets
+    from torch.utils.data import DataLoader, Subset
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.init(project_name=project_name, task_name="Model Training")
+    # Create ClearML task
+    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
-    # Load preprocessed dataset
-    dataset = Dataset.get(dataset_id=preprocessed_dataset_id)
+    # Parameters
+    img_size = 224
+    batch_size = 16
+    epochs = 200
+    patience = 10
+
+    # Data augmentation and loading
+    transform = transforms.Compose(
+        [
+            transforms.Resize((img_size, img_size)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
+            transforms.RandomRotation(45),
+            transforms.RandomResizedCrop(img_size, scale=(0.75, 1.0)),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
+
+    # Load the dataset
+    dataset = Dataset.get(dataset_id=dataset_id)
     dataset_path = dataset.get_local_copy()
 
-    # Get first category
-    first_category = os.listdir(dataset_path)[0]
+    print(f"Dataset path: {dataset_path}")
 
-    # Get image size from the first image from the healthy directory
-    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    img_height, img_width, _ = img.shape
-    img_size = min(img_height, img_width)
+    # Load the dataset into an ImageFolder
+    img_data = datasets.ImageFolder(dataset_path, transform=transform)
 
-    # Set batch size
-    batch_size = 32
+    # Get the targets and calculate the train and test split indices
+    targets = np.array(img_data.targets)
+    train_indices, test_indices = train_test_split(np.arange(len(targets)), test_size=0.2, stratify=targets, random_state=42)
 
-    # Data augmentation and preprocessing
-    datagen = ImageDataGenerator(
-        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.8
-    )
+    # Create the train and test datasets
+    train_dataset = Subset(img_data, train_indices)
+    test_dataset = Subset(img_data, test_indices)
 
-    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
-    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
+    # Data loaders
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-    # Configurations
-    epochs = 200
-    num_classes = len(train_generator.class_indices)
-    optimizer = Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999)
-    early_stopping = EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True)
-    learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001)
+    # Define the device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load ResNet50V2 model
-    base_resNet_model = ResNet50V2(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
+    # Model setup
+    model = models.resnet50(pretrained=True)
+    num_ftrs = model.fc.in_features
+    model.fc = nn.Sequential(nn.Linear(num_ftrs, 512), nn.ReLU(), nn.Dropout(0.5), nn.Linear(512, len(train_loader.dataset.dataset.classes)))
 
-    # Freeze the base model
-    for layer in base_resNet_model.layers:
-        layer.trainable = False
+    # Move the model to the device
+    model = model.to(device)
 
-    # Add custom layers
-    x = base_resNet_model.output
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(1024)(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(0.3)(x)
-    predictions = Dense(num_classes, activation="softmax")(x)
+    # Loss and optimizer
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-    # Create model
-    resnet_model = Model(inputs=base_resNet_model.input, outputs=predictions)
+    # Early stopping initialization
+    best_validation_loss = float("inf")
+    patience_counter = 0
 
-    # Compile model
-    resnet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+    # Training loop
+    for epoch in range(epochs):
+        model.train()
+        running_loss = 0.0
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
 
-    # Train the model
-    resnet_model.fit(
-        train_generator,
-        epochs=epochs,
-        validation_data=test_generator,
-        callbacks=[learning_rate_reduction, early_stopping],
-    )
+        # Validation loop
+        model.eval()
+        validation_loss = 0.0
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                validation_loss += loss.item()
 
-    # Save and upload the model to ClearML
-    model_file_name = "CropSpot_Model.h5"
-    resnet_model.save(model_file_name)
+        scheduler.step()
+        print(f"Epoch {epoch+1} Training Loss: {running_loss / len(train_loader)} Validation Loss: {validation_loss / len(test_loader)}")
 
-    output_model = OutputModel(task=task)
+        # Early stopping
+        if validation_loss < best_validation_loss:
+            best_validation_loss = validation_loss
+            patience_counter = 0
+        else:
+            patience_counter += 1
 
-    # Upload the model weights to ClearML
-    output_model.update_weights(model_file_name, upload_uri="https://files.clear.ml")
+        if patience_counter >= patience:
+            print("Early stopping")
+            break
 
-    # Make sure the model is accessible
+    print("Finished Training")
+
+    # Save the model
+    model_file_name = "CropSpot_Model.pth"
+    torch.save(model.state_dict(), model_file_name)
+
+    output_model = OutputModel(model=model, model_desc="CropSpot's Image Classification Model", task=task)
+    output_model.update_weights(model.state_dict())
     output_model.publish()
 
-    task.upload_artifact("Trained Model", artifact_object=model_file_name)
-
-    if os.path.exists("CropSpot_Model.h5"):
-        os.remove("CropSpot_Model.h5")
+    # Upload the model artifact
+    task.upload_artifact("Trained CropSpot Model", artifact_object=model_file_name)
 
     return output_model.id
 
 
 if __name__ == "__main__":
-    os.system("pip install scipy==1.10.1")
-    os.system("pip install protobuf==3.9.2")
-    os.system("pip install numpy==1.23.5")
-    os.system("pip install matplotlib==3.7.3")
-    os.system("pip install tensorflow==2.14.0")
-    os.system("pip install absl-py==1.2")
-    os.system("pip install keras==2.14.0")
-    os.system("pip install tensorboard==2.14.0")
-    os.system("pip install tensorflow-estimator==2.14.0")
-    os.system("pip install wrapt==1.11.0")
-
-    parser = argparse.ArgumentParser(description="Train CropSpot Model")
+    parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
-    parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
-    parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
-    # parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
+    parser.add_argument("--project_name", type=str, required=True, help="Name of the ClearML project")
+    parser.add_argument("--queue_name", type=str, required=True, help="Name of the ClearML queue for remote execution")
 
     args = parser.parse_args()
 
-    print(args)
-
-    # model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
     model_id = train_model(args.preprocessed_dataset_id, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
