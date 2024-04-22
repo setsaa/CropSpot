@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Subset
 from clearml import Task, Dataset, OutputModel
 
 
-def train_model(dataset_id, project_name, queue_name):
+def train_model(dataset_name, project_name, queue_name):
     # import os
     # import argparse
     # import numpy as np
@@ -47,7 +47,7 @@ def train_model(dataset_id, project_name, queue_name):
     )
 
     # Load the dataset
-    dataset = Dataset.get(dataset_id=dataset_id)
+    dataset = Dataset.get(dataset_name=dataset_name)
     dataset_path = dataset.get_local_copy()
     # print(f"Dataset path: {dataset_path}")
 
@@ -149,12 +149,12 @@ def train_model(dataset_id, project_name, queue_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
-    parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
+    parser.add_argument("--dataset_name", type=str, required=True, help="Name of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=True, help="Name of the ClearML project")
     parser.add_argument("--queue_name", type=str, required=True, help="Name of the ClearML queue for remote execution")
 
     args = parser.parse_args()
 
-    model_id = train_model(args.preprocessed_dataset_id, args.project_name, args.queue_name)
+    model_id = train_model(args.dataset_name, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")

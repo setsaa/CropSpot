@@ -6,7 +6,7 @@ def create_data_pipeline(
     queue_name: str = "helldiver",
 ):
     from clearml import PipelineController, Task
-    from upload_data import upload_local_dataset
+    from upload_data import upload_dataset
     from preprocess_data import upload_preprocessed_dataset, preprocess_images
 
     # Initialize a new pipeline controller task
@@ -28,7 +28,7 @@ def create_data_pipeline(
     # Step 1: Upload Raw Data
     pipeline.add_function_step(
         name="Data Upload",
-        function=upload_local_dataset,
+        function=upload_dataset,
         function_kwargs={
             "dataset_dir": "CropSpot\Dataset\Raw Data",
             "clearml_project_name": "${pipeline.dataset_project}",

@@ -1,39 +1,69 @@
 import os
 import argparse
+import requests
+import zipfile
 from clearml import Task, Dataset
 
 
 """
-    To be run run locally, this script uploads a local dataset to ClearML.
+    This script uploads a local dataset to ClearML.
 """
 
 
-def upload_local_dataset(dataset_dir, clearml_project_name, dataset_name):
+def download_dataset(dataset_url, dataset_dir):
     """
-    Upload local dataset to a ClearML project.
+    Download dataset from a URL.
 
     Parameters:
-        dataset_dir (str): Path to the local dataset directory.
-        clearml_project_name (str): Name of the ClearML project.
-        dataset_name (str): Name of the dataset in ClearML.
+        dataset_url (str): URL of the dataset.
+        dataset_dir (str): Directory to save the downloaded dataset.
+    """
+
+    response = requests.get(dataset_url, stream=True)
+
+    if response.status_code == 200:
+        with open(os.path.join(dataset_dir, "dataset.zip"), "wb") as file:
+            file.write(response.content)
+    else:
+        raise ValueError(f"Failed to download the dataset. HTTP response code: {response.status_code}")
+
+
+def upload_dataset(project_name, dataset_name, queue_name):
+    """
+    Upload dataset to a ClearML project.
+
+    Parameters:
+        project_name (str): Name of the ClearML project.
+        dataset_name (str): Name of the dataset.
+        queue_name (str): Name of the queue to execute the task.
 
     Returns:
-        name and ID of the uploaded dataset.
+        dataset_id (str): ID of the uploaded dataset.
+        dataset_name (str): Name of the uploaded dataset.
     """
 
     # Create a ClearML task
-    task = Task.init(project_name=clearml_project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
+    task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
+    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
-    # Ensure the dataset directory is valid
+    dataset_url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/bwh3zbpkpv-1.zip"
+    dataset_dir = "./"
+
+    # Download the dataset
+    download_dataset(dataset_url, dataset_dir)
+
+    # Extract the zip file
+    with zipfile.ZipFile(os.path.join(dataset_dir, "dataset.zip"), "r") as zip_ref:
+        zip_ref.extractall(dataset_dir)
+
+    # Ensure the dataset directory is valid or empty
     if not os.path.isdir(dataset_dir):
         raise ValueError(f"The specified path '{dataset_dir}' is not a directory or does not exist.")
-
-    # Ensure the dataset directory is not empty
     if not os.listdir(dataset_dir):
         raise ValueError(f"The specified path '{dataset_dir}' is empty.")
 
     # Create a ClearML dataset
-    dataset = Dataset.create(dataset_name=dataset_name, dataset_project=clearml_project_name)
+    dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
 
     # Add the dataset directory to the dataset
     dataset.add_files(dataset_dir)
@@ -54,12 +84,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload Dataset Directory to ClearML")
 
     # Add arguments
-    parser.add_argument("--dataset_dir", type=str, required=True, help="Path to the dataset directory")
-    parser.add_argument("--clearml_project_name", type=str, required=True, help="ClearML project name")
+    parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
     parser.add_argument("--dataset_name", type=str, required=True, help="ClearML dataset name")
+    parser.add_argument("--queue_name", type=str, default="default", help="ClearML queue name")
 
     # Parse command-line arguments
     args = parser.parse_args()
 
     # Call function with the parsed arguments
-    upload_local_dataset(args.dataset_dir, args.clearml_project_name, args.dataset_name)
+    dataset_id, dataset_name = upload_dataset(args.project_name, args.dataset_name, args.queue_name)
+
+    print(f"Dataset uploaded with ID: {dataset_id} and name: {dataset_name}")
