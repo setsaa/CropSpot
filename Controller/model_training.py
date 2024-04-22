@@ -11,20 +11,20 @@ from clearml import Task, Dataset, OutputModel
 
 
 def train_model(dataset_id, project_name, queue_name):
-    import os
-    import argparse
-    import numpy as np
-    from sklearn.model_selection import train_test_split
-    import torch
-    import torch.nn as nn
-    import torch.optim as optim
-    from torchvision import transforms, models, datasets
-    from torch.utils.data import DataLoader, Subset
-    from clearml import Task, Dataset, OutputModel
+    # import os
+    # import argparse
+    # import numpy as np
+    # from sklearn.model_selection import train_test_split
+    # import torch
+    # import torch.nn as nn
+    # import torch.optim as optim
+    # from torchvision import transforms, models, datasets
+    # from torch.utils.data import DataLoader, Subset
+    # from clearml import Task, Dataset, OutputModel
 
-    # Create ClearML task
-    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # # Create ClearML task
+    # task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     # Parameters
     img_size = 224
@@ -49,15 +49,18 @@ def train_model(dataset_id, project_name, queue_name):
     # Load the dataset
     dataset = Dataset.get(dataset_id=dataset_id)
     dataset_path = dataset.get_local_copy()
+    # print(f"Dataset path: {dataset_path}")
 
-    print(f"Dataset path: {dataset_path}")
+    # Get class folders from the dataset path
+    classes = [folder for folder in os.listdir(dataset_path) if os.path.isdir(os.path.join(dataset_path, folder))]
+    # print(f"Classes: {classes}")
 
     # Load the dataset into an ImageFolder
-    img_data = datasets.ImageFolder(dataset_path, transform=transform)
+    img_data = datasets.ImageFolder(root=dataset_path, transform=transform)
 
     # Get the targets and calculate the train and test split indices
     targets = np.array(img_data.targets)
-    train_indices, test_indices = train_test_split(np.arange(len(targets)), test_size=0.2, stratify=targets, random_state=42)
+    train_indices, test_indices = train_test_split(np.arange(len(targets)), test_size=0.9, stratify=targets, random_state=42)
 
     # Create the train and test datasets
     train_dataset = Subset(img_data, train_indices)
@@ -67,7 +70,10 @@ def train_model(dataset_id, project_name, queue_name):
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-    # Define the device
+    # print(f"Train dataset size: {len(train_loader.dataset)}")
+    # print(f"Test dataset size: {len(test_loader.dataset)}")
+
+    # Define device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Model setup
@@ -75,7 +81,7 @@ def train_model(dataset_id, project_name, queue_name):
     num_ftrs = model.fc.in_features
     model.fc = nn.Sequential(nn.Linear(num_ftrs, 512), nn.ReLU(), nn.Dropout(0.5), nn.Linear(512, len(train_loader.dataset.dataset.classes)))
 
-    # Move the model to the device
+    # Move the model to device
     model = model.to(device)
 
     # Loss and optimizer
@@ -130,14 +136,15 @@ def train_model(dataset_id, project_name, queue_name):
     model_file_name = "CropSpot_Model.pth"
     torch.save(model.state_dict(), model_file_name)
 
-    output_model = OutputModel(model=model, model_desc="CropSpot's Image Classification Model", task=task)
-    output_model.update_weights(model.state_dict())
-    output_model.publish()
+    # output_model = OutputModel(model=model, model_desc="CropSpot's Image Classification Model", task=task)
+    # output_model.update_weights(model.state_dict())
+    # output_model.publish()
 
-    # Upload the model artifact
-    task.upload_artifact("Trained CropSpot Model", artifact_object=model_file_name)
+    # # Upload the model artifact
+    # task.upload_artifact("Trained CropSpot Model", artifact_object=model_file_name)
 
-    return output_model.id
+    return model_file_name
+    # return output_model.id
 
 
 if __name__ == "__main__":

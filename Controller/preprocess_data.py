@@ -1,14 +1,22 @@
+import os
 import argparse
 import logging
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+from clearml import Dataset, Task
+from pathlib import Path
 
 
-# def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
-def preprocess_images(dataset_dir, preprocessed_dir):
+def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
+    import os
+    import argparse
     import logging
     import numpy as np
-    import os
     from PIL import Image
     from tqdm import tqdm
+    from clearml import Dataset, Task
+    from pathlib import Path
 
     """Clean images in the folder.
 
@@ -32,7 +40,7 @@ def preprocess_images(dataset_dir, preprocessed_dir):
         img_path = os.path.join(dataset_dir, file)
         try:
             img = Image.open(img_path)
-            np.array(img).flatten()  # Try to convert to numpy array
+            np.array(img).flatten()
         except (IOError, SyntaxError):
             removed_files.append(file)
             os.remove(img_path)
@@ -49,24 +57,24 @@ def preprocess_images(dataset_dir, preprocessed_dir):
     else:
         print("All images have the dimension " + str(dimensions[0]))
 
-    # # Detect and remove outliers
-    # if remove_outliers:
-    #     logging.info("Detecting outliers…")
-    #     # Load images
-    #     images = [np.array(Image.open(os.path.join(dataset_dir, file)).flatten()) for file in os.listdir(dataset_dir)]
+    # Detect and remove outliers
+    if remove_outliers:
+        logging.info("Detecting outliers…")
+        # Load images
+        images = [np.array(Image.open(os.path.join(dataset_dir, file)).flatten()) for file in os.listdir(dataset_dir)]
 
-    #     # Calculate mean and standard deviation
-    #     mean = np.mean(images)
-    #     std = np.std(images)
+        # Calculate mean and standard deviation
+        mean = np.mean(images)
+        std = np.std(images)
 
-    #     # Detect outliers
-    #     outliers = [i for i, img in enumerate(images) if abs(img - mean) > 2 * std]
+        # Detect outliers
+        outliers = [i for i, img in enumerate(images) if abs(img - mean) > 2 * std]
 
-    #     # Print results
-    #     if len(outliers) == 0:
-    #         print("No outliers detected.")
-    #     else:
-    #         print(f"Outliers detected: {outliers}")
+        # Print results
+        if len(outliers) == 0:
+            print("No outliers detected.")
+        else:
+            print(f"Outliers detected: {outliers}")
 
     # Create a subdirectory in the preprocessed directory for this category
     category = os.path.basename(dataset_dir)
@@ -153,7 +161,7 @@ if __name__ == "__main__":
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
     parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
-    parser.add_argument("--clearml_project", type=str, default="CropSpot", help="Name of the project for the processed dataset")
+    parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
     # Parse command-line arguments
@@ -162,7 +170,7 @@ if __name__ == "__main__":
     # Upload preprocessed datasets
     processed_dataset_id = upload_preprocessed_dataset(
         raw_dataset_name=args.dataset_name,
-        project_name=args.clearml_project,
+        project_name=args.project_name,
         queue_name=args.queue_name,
     )
 
