@@ -2,6 +2,8 @@ import os
 import argparse
 import requests
 import zipfile
+import shutil
+from tqdm import tqdm
 from clearml import Task, Dataset
 
 
@@ -10,20 +12,60 @@ from clearml import Task, Dataset
 """
 
 
-def download_dataset(dataset_url, dataset_dir):
+def download_dataset(dataset_dir, dataset_name):
     """
-    Download dataset from a URL.
+    Download and extract dataset from URL.
 
     Parameters:
-        dataset_url (str): URL of the dataset.
-        dataset_dir (str): Directory to save the downloaded dataset.
+        dataset_dir (str): Directory to save and extract the downloaded dataset.
+        dataset_name (str): Name of the dataset.
     """
+
+    dataset_url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/bwh3zbpkpv-1.zip"
 
     response = requests.get(dataset_url, stream=True)
 
     if response.status_code == 200:
-        with open(os.path.join(dataset_dir, "dataset.zip"), "wb") as file:
-            file.write(response.content)
+        total_size = int(response.headers.get("content-length", 0))
+        block_size = 1024
+        t = tqdm(total=total_size, unit="iB", unit_scale=True)
+
+        zip_path = os.path.join(dataset_dir, f"{dataset_name}.zip")
+        with open(zip_path, "wb") as file:
+            for chunk in response.iter_content(chunk_size=block_size):
+                if chunk:
+                    t.update(len(chunk))
+                    file.write(chunk)
+        t.close()
+
+        if total_size != 0 and t.n != total_size:
+            print("ERROR, something went wrong")
+
+        # Extract the zip file
+        zip_path = os.path.join(dataset_dir, f"{dataset_name}.zip")
+        extract_dir = os.path.join(dataset_dir, dataset_name)
+        os.makedirs(extract_dir, exist_ok=True)
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            top_level_dir = os.path.commonprefix(zip_ref.namelist())
+            with tqdm(total=len(zip_ref.namelist()), desc="Extracting files", unit="file") as pbar:
+                for member in zip_ref.namelist():
+                    zip_ref.extract(member, extract_dir)
+                    pbar.update()
+
+        # Keep only relevant data
+        top_level_dir = [folder for folder in os.listdir(extract_dir) if os.path.isdir(os.path.join(extract_dir, folder))][0]
+        new_extract_dir = os.path.join(extract_dir, top_level_dir)
+        raw_data_dir = os.path.join(new_extract_dir, "Raw Data/CCMT Dataset/Tomato")
+
+        for folder in os.listdir(raw_data_dir):
+            os.rename(os.path.join(raw_data_dir, folder), os.path.join(extract_dir, folder))
+
+        # Remove unnecessary folders
+        shutil.rmtree(new_extract_dir)
+
+        # Remove the zip file
+        os.remove(zip_path)
+
     else:
         raise ValueError(f"Failed to download the dataset. HTTP response code: {response.status_code}")
 
@@ -46,33 +88,28 @@ def upload_dataset(project_name, dataset_name, queue_name):
     task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
-    dataset_url = "https://prod-dcd-datasets-cache-zipfiles.s3.eu-west-1.amazonaws.com/bwh3zbpkpv-1.zip"
     dataset_dir = "./"
 
     # Download the dataset
-    download_dataset(dataset_url, dataset_dir)
+    download_dataset(dataset_dir, dataset_name)
 
-    # Extract the zip file
-    with zipfile.ZipFile(os.path.join(dataset_dir, "dataset.zip"), "r") as zip_ref:
-        zip_ref.extractall(dataset_dir)
-
-    # Ensure the dataset directory is valid or empty
-    if not os.path.isdir(dataset_dir):
-        raise ValueError(f"The specified path '{dataset_dir}' is not a directory or does not exist.")
-    if not os.listdir(dataset_dir):
-        raise ValueError(f"The specified path '{dataset_dir}' is empty.")
+    # Create a directory with the dataset name if it doesn't exist
+    dataset_path = os.path.join(dataset_dir, dataset_name)
 
     # Create a ClearML dataset
     dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
 
     # Add the dataset directory to the dataset
-    dataset.add_files(dataset_dir)
+    dataset.add_files(dataset_path)
 
     # Upload the dataset to ClearML
     dataset.upload()
 
     # Finalize the dataset
     dataset.finalize()
+
+    # Remove the dataset directory
+    shutil.rmtree(dataset_path)
 
     print(f"Dataset uploaded with ID: {dataset.id} and name: {dataset.name}")
 

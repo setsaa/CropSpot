@@ -1,10 +1,3 @@
-import os
-import argparse
-from clearml import PipelineController, Task
-from upload_data import upload_dataset, download_dataset
-from preprocess_data import preprocess_dataset, preprocess_images
-
-
 def create_data_pipeline(
     pipeline_name: str = "CropSpot Data Pipeline",
     project_name: str = "CropSpot",
@@ -45,7 +38,7 @@ def create_data_pipeline(
 
     # Step 1: Upload Raw Data
     pipeline.add_function_step(
-        name="Data Upload",
+        name="Data_Upload",
         function=upload_dataset,
         function_kwargs={
             "project_name": "${pipeline.project_name}",
@@ -54,7 +47,7 @@ def create_data_pipeline(
         },
         task_type=Task.TaskTypes.data_processing,
         task_name="Upload Raw Data",
-        function_return=["raw_dataset_id", "dataset_name"],
+        function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
         execution_queue=queue_name,
         cache_executed_step=False,
@@ -62,10 +55,10 @@ def create_data_pipeline(
 
     # Step 2: Preprocess Data
     pipeline.add_function_step(
-        name="Data Preprocessing",
+        name="Data_Preprocessing",
         function=preprocess_dataset,
         function_kwargs={
-            "dataset_name": "${pipeline.dataset_name}",
+            "dataset_name": "${Data_Upload.raw_dataset_name}",
             "project_name": "${pipeline.project_name}",
             "queue_name": "${pipeline.queue_name}",
         },
@@ -83,6 +76,8 @@ def create_data_pipeline(
 
 
 if __name__ == "__main__":
+    import argparse
+
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
     parser.add_argument(
         "--pipeline_name",

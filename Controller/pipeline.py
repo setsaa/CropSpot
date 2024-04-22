@@ -46,7 +46,7 @@ def create_CropSpot_pipeline(
 
     # Step 1: Upload Data
     pipeline.add_function_step(
-        name="Data Upload",
+        name="Data_Upload",
         function=upload_dataset,
         function_kwargs={
             "project_name": "${pipeline.project_name}",
@@ -63,7 +63,7 @@ def create_CropSpot_pipeline(
 
     # Step 2: Preprocess Data
     pipeline.add_function_step(
-        name="Data Preprocessing",
+        name="Data_Preprocessing",
         function=preprocess_dataset,
         function_kwargs={
             "dataset_name": "${pipeline.dataset_name}",
@@ -72,7 +72,7 @@ def create_CropSpot_pipeline(
         },
         task_type=Task.TaskTypes.data_processing,
         task_name="Preprocess Uploaded Data",
-        function_return=["processed_dataset_id"],
+        function_return=["processed_dataset_id", "processed_dataset_name"],
         helper_functions=[preprocess_images],
         execution_queue=queue_name,
         cache_executed_step=False,
@@ -80,10 +80,10 @@ def create_CropSpot_pipeline(
 
     # Step 3: Train Model
     pipeline.add_function_step(
-        name="train_model",
+        name="Model_Training",
         function=train_model,
         function_kwargs={
-            "dataset_name": "${pipeline.dataset_name}",
+            "dataset_name": "${Data_Preprocessing.processed_dataset_name}",
             "project_name": "${pipeline.project_name}",
             "queue_name": "${pipeline.queue_name}",
         },

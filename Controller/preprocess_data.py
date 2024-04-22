@@ -168,7 +168,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Upload preprocessed datasets
-    processed_dataset_id = preprocess_dataset(
+    processed_dataset_id, processed_dataset_name = preprocess_dataset(
         raw_dataset_name=args.dataset_name,
         project_name=args.project_name,
         queue_name=args.queue_name,
