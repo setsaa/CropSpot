@@ -1,18 +1,24 @@
 import os
 
+os.system("pip install scipy==1.10.1")
+os.system("pip install protobuf==3.9.2")
 os.system("pip install numpy==1.23.5")
 os.system("pip install matplotlib==3.7.3")
-os.system("pip install scipy==1.10.1")
-os.system("pip install protobuf==3.17.2")
+os.system("pip install tensorflow==2.14.0")
+os.system("pip install absl-py==1.2")
+os.system("pip install keras==2.14.0")
+os.system("pip install tensorboard==2.14.0")
+os.system("pip install tensorflow-estimator==2.14.0")
+os.system("pip install wrapt==1.11.0")
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications import ResNet50V2
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.preprocessing.image import ImageDataGenerator
+from keras.applications import ResNet50V2
+from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+from keras.models import Model
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from clearml import Task, Dataset, OutputModel
 import argparse
 
@@ -21,12 +27,12 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
     import tensorflow as tf
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from tensorflow.keras.applications import ResNet50V2
-    from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Adam
-    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from keras.preprocessing.image import ImageDataGenerator
+    from keras.applications import ResNet50V2
+    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from keras.models import Model
+    from keras.optimizers import Adam
+    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
     from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="Model Training")
@@ -114,6 +120,17 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
 
 
 if __name__ == "__main__":
+    os.system("pip install scipy==1.10.1")
+    os.system("pip install protobuf==3.9.2")
+    os.system("pip install numpy==1.23.5")
+    os.system("pip install matplotlib==3.7.3")
+    os.system("pip install tensorflow==2.14.0")
+    os.system("pip install absl-py==1.2")
+    os.system("pip install keras==2.14.0")
+    os.system("pip install tensorboard==2.14.0")
+    os.system("pip install tensorflow-estimator==2.14.0")
+    os.system("pip install wrapt==1.11.0")
+
     parser = argparse.ArgumentParser(description="Train CropSpot Model")
     parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
