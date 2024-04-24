@@ -32,6 +32,8 @@ contourpy==1.2.0
 cryptography==42.0.2
 cycler==0.12.1
 Cython==0.29.37
+clearml==1.15.1
+clearml-agent==1.8.0
 debugpy==1.8.1
 decorator==5.1.1
 defusedxml==0.7.1

@@ -197,7 +197,8 @@ TomatoDiseaseDataset/
 local_testing.ipynb
 *.zip
 
-sagemaker_env/
+temp_env/
+tmp_env/
 
 # ignore the trained models (temporarily)
 *.h5
