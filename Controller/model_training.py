@@ -149,9 +149,9 @@ def train_model(dataset_name, project_name, queue_name):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
-    parser.add_argument("--dataset_name", type=str, required=True, help="Name of the preprocessed dataset")
-    parser.add_argument("--project_name", type=str, required=True, help="Name of the ClearML project")
-    parser.add_argument("--queue_name", type=str, required=True, help="Name of the ClearML queue for remote execution")
+    parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDataset_preprocessed", help="Name of the preprocessed dataset")
+    parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
+    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
 
     args = parser.parse_args()
 
