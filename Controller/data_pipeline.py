@@ -41,22 +41,26 @@ def create_data_pipeline(
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
 
+    # Check if dataset already exists
+    existing_datasets = Task.get_tasks(project_name=project_name, task_name=dataset_name)
+
     # Step 1: Upload Raw Data
-    pipeline.add_function_step(
-        name="Data_Upload",
-        function=upload_dataset,
-        function_kwargs={
-            "project_name": "${pipeline.project_name}",
-            "dataset_name": "${pipeline.dataset_name}",
-            "queue_name": "${pipeline.queue_name}",
-        },
-        task_type=Task.TaskTypes.data_processing,
-        task_name="Upload Raw Data",
-        function_return=["raw_dataset_id", "raw_dataset_name"],
-        helper_functions=[download_dataset],
-        execution_queue=queue_name,
-        cache_executed_step=False,
-    )
+    if not existing_datasets:
+        pipeline.add_function_step(
+            name="Data_Upload",
+            function=upload_dataset,
+            function_kwargs={
+                "project_name": "${pipeline.project_name}",
+                "dataset_name": "${pipeline.dataset_name}",
+                "queue_name": "${pipeline.queue_name}",
+            },
+            task_type=Task.TaskTypes.data_processing,
+            task_name="Upload Raw Data",
+            function_return=["raw_dataset_id", "raw_dataset_name"],
+            helper_functions=[download_dataset],
+            execution_queue=queue_name,
+            cache_executed_step=False,
+        )
 
     # Step 2: Preprocess Data
     pipeline.add_function_step(
