@@ -11,20 +11,20 @@ from clearml import Task, Dataset, OutputModel
 
 
 def train_model(dataset_name, project_name, queue_name):
-    # import os
-    # import argparse
-    # import numpy as np
-    # from sklearn.model_selection import train_test_split
-    # import torch
-    # import torch.nn as nn
-    # import torch.optim as optim
-    # from torchvision import transforms, models, datasets
-    # from torch.utils.data import DataLoader, Subset
-    # from clearml import Task, Dataset, OutputModel
+    import os
+    import argparse
+    import numpy as np
+    from sklearn.model_selection import train_test_split
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torchvision import transforms, models, datasets
+    from torch.utils.data import DataLoader, Subset
+    from clearml import Task, Dataset, OutputModel
 
     # # Create ClearML task
-    # task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
+    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
+    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     # Parameters
     img_size = 224
@@ -136,15 +136,15 @@ def train_model(dataset_name, project_name, queue_name):
     model_file_name = "CropSpot_Model.pth"
     torch.save(model.state_dict(), model_file_name)
 
-    # output_model = OutputModel(model=model, model_desc="CropSpot's Image Classification Model", task=task)
-    # output_model.update_weights(model.state_dict())
-    # output_model.publish()
+    output_model = OutputModel(model=model, model_desc="CropSpot's Image Classification Model", task=task)
+    output_model.update_weights(model.state_dict())
+    output_model.publish()
 
     # # Upload the model artifact
-    # task.upload_artifact("Trained CropSpot Model", artifact_object=model_file_name)
+    task.upload_artifact("Trained CropSpot Model", artifact_object=model_file_name)
 
-    return model_file_name
-    # return output_model.id
+    #return model_file_name
+    return output_model.id
 
 
 if __name__ == "__main__":
