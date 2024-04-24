@@ -90,6 +90,12 @@ def upload_dataset(project_name, dataset_name, queue_name):
 
     dataset_dir = "./"
 
+    # Check if dataset already exists on ClearML
+    existing_datasets = Dataset.get(dataset_name=dataset_name)
+    if existing_datasets:
+        print(f"Dataset '{dataset_name}' already exists in project '{project_name}'.")
+        return existing_datasets.id, existing_datasets.name
+
     # Download the dataset
     download_dataset(dataset_dir, dataset_name)
 
