@@ -26,13 +26,6 @@ def create_data_pipeline(
         None
     """
 
-    # Check if dataset already exists
-    existing_datasets = Task.get_tasks(project_name=project_name, task_name=dataset_name)
-    if existing_datasets:
-        print(f"Dataset '{dataset_name}' already exists in project '{project_name}'.")
-        return
-
-
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
         name=pipeline_name,
