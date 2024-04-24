@@ -8,6 +8,7 @@ tensorflow = "*"
 clearml = "*"
 clearml-agent = "*"
 tqdm = "*"
+matplotlib = "*"
 
 [dev-packages]
 

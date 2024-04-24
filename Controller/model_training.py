@@ -2,12 +2,12 @@ import os
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
-from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import ResNet50V2
-from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from keras.models import Model
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import ResNet50V2
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from clearml import Task, Dataset, OutputModel
 import argparse
 
@@ -16,12 +16,12 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
     import tensorflow as tf
-    from keras.preprocessing.image import ImageDataGenerator
-    from keras.applications import ResNet50V2
-    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from keras.models import Model
-    from keras.optimizers import Adam
-    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    from tensorflow.keras.applications import ResNet50V2
+    from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from tensorflow.keras.optimizers import Adam
+    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
     from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="Model Training")
