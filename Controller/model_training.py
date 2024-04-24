@@ -1,16 +1,5 @@
 import os
 
-os.system("pip install scipy==1.10.1")
-os.system("pip install protobuf==3.9.2")
-os.system("pip install numpy==1.23.5")
-os.system("pip install matplotlib==3.7.3")
-os.system("pip install tensorflow==2.14.0")
-os.system("pip install absl-py==1.2")
-os.system("pip install keras==2.14.0")
-os.system("pip install tensorboard==2.14.0")
-os.system("pip install tensorflow-estimator==2.14.0")
-os.system("pip install wrapt==1.11.0")
-
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras.preprocessing.image import ImageDataGenerator
@@ -120,28 +109,13 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
 
 
 if __name__ == "__main__":
-    os.system("pip install scipy==1.10.1")
-    os.system("pip install protobuf==3.9.2")
-    os.system("pip install numpy==1.23.5")
-    os.system("pip install matplotlib==3.7.3")
-    os.system("pip install tensorflow==2.14.0")
-    os.system("pip install absl-py==1.2")
-    os.system("pip install keras==2.14.0")
-    os.system("pip install tensorboard==2.14.0")
-    os.system("pip install tensorflow-estimator==2.14.0")
-    os.system("pip install wrapt==1.11.0")
-
-    parser = argparse.ArgumentParser(description="Train CropSpot Model")
-    parser.add_argument("--preprocessed_dataset_id", type=str, required=True, help="ID of the preprocessed dataset")
-    parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
-    parser.add_argument("--queue_name", type=str, required=True, help="ClearML queue name")
-    # parser.add_argument("--split_ratio", type=float, default=0.2, help="Validation split ratio")
+    parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
+    parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDataset_preprocessed", help="Name of the preprocessed dataset")
+    parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
+    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
 
     args = parser.parse_args()
 
-    print(args)
-
-    # model_id = train_model(args.preprocessed_dataset_id, args.split_ratio, args.project_name, args.queue_name)
-    model_id = train_model(args.preprocessed_dataset_id, args.project_name, args.queue_name)
+    model_id = train_model(args.dataset_name, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
