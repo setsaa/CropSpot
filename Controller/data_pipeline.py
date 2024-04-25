@@ -11,6 +11,8 @@ def create_data_pipeline(
     dataset_name: str = "TomatoDiseaseDataset",
     queue_name: str = "helldiver",
 ):
+    import os
+    import argparse
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset, preprocess_images
@@ -58,6 +60,7 @@ def create_data_pipeline(
         helper_functions=[download_dataset],
         execution_queue=queue_name,
         cache_executed_step=False,
+        project_name=project_name,
     )
 
     # Step 2: Preprocess Data
@@ -72,10 +75,11 @@ def create_data_pipeline(
         task_type=Task.TaskTypes.data_processing,
         task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id"],
-        parents=["Data_Upload"],
         helper_functions=[preprocess_images],
         execution_queue=queue_name,
         cache_executed_step=False,
+        parents=["Data_Upload"],
+        project_name=project_name,
     )
 
     # Start the pipeline
@@ -84,7 +88,10 @@ def create_data_pipeline(
 
 
 if __name__ == "__main__":
+    # Initialize argument parser
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
+
+    # Add arguments
     parser.add_argument(
         "--pipeline_name",
         type=str,

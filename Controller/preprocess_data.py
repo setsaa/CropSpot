@@ -10,10 +10,13 @@ from clearml import Dataset, Task
 
 def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
     import os
+    import argparse
     import logging
     import numpy as np
     from PIL import Image
     from tqdm import tqdm
+    from pathlib import Path
+    from clearml import Dataset, Task
 
     """Clean images in the folder.
 
@@ -101,8 +104,13 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
         ID and name of the processed dataset.
     """
     import os
-    from clearml import Dataset, Task
+    import argparse
+    import logging
+    import numpy as np
+    from PIL import Image
+    from tqdm import tqdm
     from pathlib import Path
+    from clearml import Dataset, Task
 
     task = Task.init(
         project_name=project_name,
