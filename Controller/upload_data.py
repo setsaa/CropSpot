@@ -1,9 +1,10 @@
+import os
 import argparse
-
-
-"""
-    This script uploads a local dataset to ClearML.
-"""
+import shutil
+import requests
+import zipfile
+from tqdm import tqdm
+from clearml import Task, Dataset
 
 
 def download_dataset(dataset_dir, dataset_name):

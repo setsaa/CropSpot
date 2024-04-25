@@ -1,4 +1,8 @@
+import os
 import argparse
+from clearml import PipelineController, Task
+from upload_data import upload_dataset, download_dataset
+from preprocess_data import preprocess_dataset, preprocess_images
 
 
 def create_data_pipeline(
@@ -32,7 +36,6 @@ def create_data_pipeline(
         add_pipeline_tags=True,
         auto_version_bump=True,
         target_project=project_name,
-        repo="https://github.com/AI-Studio-Helldiver/CropSpot.git",
     )
 
     # Add pipeline-level parameters with defaults from function arguments
