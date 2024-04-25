@@ -1,22 +1,13 @@
-import os
 import argparse
 import logging
-import numpy as np
-from PIL import Image
-from tqdm import tqdm
-from clearml import Dataset, Task
-from pathlib import Path
 
 
 def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
     import os
-    import argparse
     import logging
     import numpy as np
     from PIL import Image
     from tqdm import tqdm
-    from clearml import Dataset, Task
-    from pathlib import Path
 
     """Clean images in the folder.
 

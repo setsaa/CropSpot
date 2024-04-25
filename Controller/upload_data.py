@@ -1,10 +1,4 @@
-import os
 import argparse
-import requests
-import zipfile
-import shutil
-from tqdm import tqdm
-from clearml import Task, Dataset
 
 
 """
@@ -14,12 +8,10 @@ from clearml import Task, Dataset
 
 def download_dataset(dataset_dir, dataset_name):
     import os
-    import argparse
     import requests
     import zipfile
     import shutil
     from tqdm import tqdm
-    from clearml import Task, Dataset
 
     """
     Download and extract dataset from URL.
@@ -92,11 +84,7 @@ def upload_dataset(project_name, dataset_name, queue_name):
         dataset_name (str): Name of the uploaded dataset.
     """
     import os
-    import argparse
-    import requests
-    import zipfile
     import shutil
-    from tqdm import tqdm
     from clearml import Task, Dataset
 
     # Create a ClearML task
@@ -106,10 +94,11 @@ def upload_dataset(project_name, dataset_name, queue_name):
     dataset_dir = "./"
 
     # Check if dataset already exists on ClearML
-    existing_datasets = Dataset.get(dataset_name=dataset_name)
-    if existing_datasets:
+    existing_dataset = Dataset.get(dataset_name=dataset_name)
+    if existing_dataset:
         print(f"Dataset '{dataset_name}' already exists in project '{project_name}'.")
-        return existing_datasets.id, existing_datasets.name
+
+        return existing_dataset.id, existing_dataset.name
 
     # Download the dataset
     download_dataset(dataset_dir, dataset_name)

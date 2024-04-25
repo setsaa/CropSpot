@@ -1,7 +1,6 @@
 import os
 import argparse
 import matplotlib.pyplot as plt
-import tensorflow as tf
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.applications import ResNet50V2
@@ -14,7 +13,6 @@ from clearml import Task, Dataset, OutputModel
 def train_model(preprocessed_dataset_id, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
-    import tensorflow as tf
     from keras.models import Model
     from keras.preprocessing.image import ImageDataGenerator
     from keras.applications import ResNet50V2

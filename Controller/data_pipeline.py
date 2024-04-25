@@ -1,6 +1,4 @@
-from clearml import PipelineController, Task
-from upload_data import upload_dataset, download_dataset
-from preprocess_data import preprocess_dataset, preprocess_images
+import argparse
 
 
 def create_data_pipeline(
@@ -34,6 +32,7 @@ def create_data_pipeline(
         add_pipeline_tags=True,
         auto_version_bump=True,
         target_project=project_name,
+        repo="https://github.com/AI-Studio-Helldiver/CropSpot.git",
     )
 
     # Add pipeline-level parameters with defaults from function arguments
@@ -70,6 +69,7 @@ def create_data_pipeline(
         task_type=Task.TaskTypes.data_processing,
         task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id"],
+        parents=["Data_Upload"],
         helper_functions=[preprocess_images],
         execution_queue=queue_name,
         cache_executed_step=False,
@@ -81,8 +81,6 @@ def create_data_pipeline(
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
     parser.add_argument(
         "--pipeline_name",
