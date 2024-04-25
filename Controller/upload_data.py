@@ -1,20 +1,9 @@
-import os
-import argparse
-import shutil
-import requests
-import zipfile
-from tqdm import tqdm
-from clearml import Task, Dataset
-
-
 def download_dataset(dataset_dir, dataset_name):
     import os
-    import argparse
     import shutil
     import requests
     import zipfile
     from tqdm import tqdm
-    from clearml import Task, Dataset
 
     """
     Download and extract dataset from URL.
@@ -87,11 +76,7 @@ def upload_dataset(project_name, dataset_name, queue_name):
         dataset_name (str): Name of the uploaded dataset.
     """
     import os
-    import argparse
     import shutil
-    import requests
-    import zipfile
-    from tqdm import tqdm
     from clearml import Task, Dataset
 
     # Create a ClearML task
@@ -134,6 +119,8 @@ def upload_dataset(project_name, dataset_name, queue_name):
 
 
 if __name__ == "__main__":
+    import argparse
+
     # Initialize argument parser
     parser = argparse.ArgumentParser(description="Upload Dataset Directory to ClearML")
 

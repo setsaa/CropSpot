@@ -1,18 +1,9 @@
-import os
-import argparse
-from clearml import PipelineController, Task
-from upload_data import upload_dataset, download_dataset
-from preprocess_data import preprocess_dataset, preprocess_images
-
-
 def create_data_pipeline(
     pipeline_name: str = "CropSpot Data Pipeline",
     project_name: str = "CropSpot",
     dataset_name: str = "TomatoDiseaseDataset",
     queue_name: str = "helldiver",
 ):
-    import os
-    import argparse
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset, preprocess_images
@@ -88,6 +79,8 @@ def create_data_pipeline(
 
 
 if __name__ == "__main__":
+    import argparse
+
     # Initialize argument parser
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
 
