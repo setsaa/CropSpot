@@ -13,6 +13,14 @@ from clearml import Task, Dataset
 
 
 def download_dataset(dataset_dir, dataset_name):
+    import os
+    import argparse
+    import requests
+    import zipfile
+    import shutil
+    from tqdm import tqdm
+    from clearml import Task, Dataset
+
     """
     Download and extract dataset from URL.
 
@@ -83,6 +91,13 @@ def upload_dataset(project_name, dataset_name, queue_name):
         dataset_id (str): ID of the uploaded dataset.
         dataset_name (str): Name of the uploaded dataset.
     """
+    import os
+    import argparse
+    import requests
+    import zipfile
+    import shutil
+    from tqdm import tqdm
+    from clearml import Task, Dataset
 
     # Create a ClearML task
     task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
