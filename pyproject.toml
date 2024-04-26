@@ -2,16 +2,17 @@
 name = "cropspot"
 version = "0.1.0"
 description = ""
-authors = ["setsaa <sigurdsets@gmail.com>"]
+authors = ["Farhan Momin <farhan.m.nafis2412@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.13"
-tensorflow = "^2.16.1"
+python = "^3.10"
+numpy = "^1.26.4"
+pandas = "^2.2.2"
+matplotlib = "^3.8.4"
 clearml = "^1.15.1"
 clearml-agent = "^1.8.0"
 tqdm = "^4.66.2"
-matplotlib = "^3.8.4"
 
 
 [build-system]
