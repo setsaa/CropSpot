@@ -35,6 +35,8 @@ def create_data_pipeline(
         auto_version_bump=True,
     )
 
+    pipeline.set_default_execution_queue(queue_name)
+
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
