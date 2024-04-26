@@ -1,3 +1,6 @@
+from clearml import PipelineController, Task
+
+
 def create_data_pipeline(
     pipeline_name: str = "CropSpot Data Pipeline",
     project_name: str = "CropSpot",
@@ -25,10 +28,11 @@ def create_data_pipeline(
     pipeline = PipelineController(
         name=pipeline_name,
         project=project_name,
+        # execution_queue=queue_name,
+        target_project=project_name,
         version="1.0",
         add_pipeline_tags=True,
         auto_version_bump=True,
-        target_project=project_name,
     )
 
     # Add pipeline-level parameters with defaults from function arguments
@@ -49,9 +53,9 @@ def create_data_pipeline(
         task_name="Upload Raw Data",
         function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
-        execution_queue=queue_name,
         cache_executed_step=False,
         project_name=project_name,
+        execution_queue=queue_name,
     )
 
     # Step 2: Preprocess Data
@@ -67,10 +71,10 @@ def create_data_pipeline(
         task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id"],
         helper_functions=[preprocess_images],
-        execution_queue=queue_name,
         cache_executed_step=False,
         parents=["Data_Upload"],
         project_name=project_name,
+        execution_queue=queue_name,
     )
 
     # Start the pipeline
