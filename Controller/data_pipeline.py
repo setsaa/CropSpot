@@ -28,7 +28,6 @@ def create_data_pipeline(
     pipeline = PipelineController(
         name=pipeline_name,
         project=project_name,
-        # execution_queue=queue_name,
         target_project=project_name,
         version="1.0",
         add_pipeline_tags=True,
@@ -41,6 +40,8 @@ def create_data_pipeline(
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
+
+    pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Raw Data
     pipeline.add_function_step(
@@ -57,7 +58,7 @@ def create_data_pipeline(
         helper_functions=[download_dataset],
         cache_executed_step=False,
         project_name=project_name,
-        execution_queue=queue_name,
+        # execution_queue=queue_name,
     )
 
     # Step 2: Preprocess Data
@@ -76,7 +77,7 @@ def create_data_pipeline(
         cache_executed_step=False,
         parents=["Data_Upload"],
         project_name=project_name,
-        execution_queue=queue_name,
+        # execution_queue=queue_name,
     )
 
     # Start the pipeline
