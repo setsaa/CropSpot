@@ -6,7 +6,7 @@ from preprocess_data import preprocess_dataset, preprocess_images
 from model_training import train_model
 
 
-def create_CropSpot_pipeline(pipeline_name, project_name, dataset_name, queue_name, pipeline):
+def create_CropSpot_pipeline(pipeline_name, project_name, dataset_name, queue_name):
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset, preprocess_images
@@ -25,23 +25,23 @@ def create_CropSpot_pipeline(pipeline_name, project_name, dataset_name, queue_na
         None
     """
 
-    # # Initialize a new pipeline controller task
-    # pipeline = PipelineController(
-    #     name=pipeline_name,
-    #     project=project_name,
-    #     version="1.0",
-    #     add_pipeline_tags=True,
-    #     target_project=project_name,
-    #     auto_version_bump=True,
-    # )
+    # Initialize a new pipeline controller task
+    pipeline = PipelineController(
+        name=pipeline_name,
+        project=project_name,
+        version="1.0",
+        add_pipeline_tags=True,
+        target_project=project_name,
+        auto_version_bump=True,
+    )
+
+    # Set the default execution queue
+    pipeline.set_default_execution_queue(queue_name)
 
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
-
-    # Set the default execution queue
-    pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Data
     pipeline.add_function_step(
