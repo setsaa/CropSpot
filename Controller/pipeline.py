@@ -12,10 +12,6 @@ def create_CropSpot_pipeline(
     dataset_name,
     queue_name,
 ):
-    # from clearml import PipelineDecorator, Task
-    # from upload_data import upload_dataset, download_dataset
-    # from preprocess_data import preprocess_dataset, preprocess_images
-
     """
     Create a ClearML pipeline for the CropSpot project.
 
@@ -36,7 +32,7 @@ def create_CropSpot_pipeline(
         version="1.0",
         add_pipeline_tags=True,
         target_project=project_name,
-        # auto_version_bump=True,
+        auto_version_bump=True,
     )
 
     # Add pipeline-level parameters with defaults from function arguments
@@ -52,11 +48,11 @@ def create_CropSpot_pipeline(
         name="Data_Upload",
         task_name="Upload Raw Data",
         function=upload_dataset,
-        function_kwargs={
-            "project_name": "${pipeline.project_name}",
-            "dataset_name": "${pipeline.dataset_name}",
-            "queue_name": "${pipeline.queue_name}",
-        },
+        function_kwargs=dict(
+            project_name="${pipeline.project_name}",
+            dataset_name="${pipeline.dataset_name}",
+            queue_name="${pipeline.queue_name}",
+        ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
@@ -70,11 +66,11 @@ def create_CropSpot_pipeline(
         name="Data_Preprocessing",
         task_name="Preprocess Uploaded Data",
         function=preprocess_dataset,
-        function_kwargs={
-            "dataset_name": "${Data_Upload.raw_dataset_name}",
-            "project_name": "${pipeline.project_name}",
-            "queue_name": "${pipeline.queue_name}",
-        },
+        function_kwargs=dict(
+            raw_dataset_name="${Data_Upload.raw_dataset_name}",
+            project_name="${pipeline.project_name}",
+            queue_name="${pipeline.queue_name}",
+        ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["processed_dataset_id", "processed_dataset_name"],
         helper_functions=[preprocess_images],
@@ -88,11 +84,11 @@ def create_CropSpot_pipeline(
         name="Model_Training",
         task_name="Train Model",
         function=train_model,
-        function_kwargs={
-            "dataset_name": "${Data_Preprocessing.processed_dataset_name}",
-            "project_name": "${pipeline.project_name}",
-            "queue_name": "${pipeline.queue_name}",
-        },
+        function_kwargs=dict(
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
+            project_name="${pipeline.project_name}",
+            queue_name="${pipeline.queue_name}",
+        ),
         task_type=Task.TaskTypes.training,
         function_return=["model_file_name"],
         parents=["Data_Preprocessing"],
@@ -134,7 +130,6 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    # pipeline.start(queue=queue_name)
     pipeline.start_locally(run_pipeline_steps_locally=True)
 
 
@@ -166,7 +161,6 @@ if __name__ == "__main__":
         type=str,
         required=False,
         default="default",
-        # default="helldiver",
         help="ClearML queue name",
     )
 
