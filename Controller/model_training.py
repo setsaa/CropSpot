@@ -3,9 +3,11 @@ import argparse
 import matplotlib.pyplot as plt
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import ResNet50V2
+#from keras.applications import ResNet50V2
+from tensorflow.keras.applications import ResNet50V2
 from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from keras.optimizers import Adam
+#from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from clearml import Task, Dataset, OutputModel
 
