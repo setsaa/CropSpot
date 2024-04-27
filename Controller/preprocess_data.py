@@ -1,14 +1,10 @@
-import os
-import logging
-import argparse
-from pathlib import Path
-import numpy as np
-from PIL import Image
-from tqdm import tqdm
-from clearml import Dataset, Task
-
-
 def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
+    import os
+    import logging
+    import numpy as np
+    from PIL import Image
+    from tqdm import tqdm
+
     """Clean images in the folder.
 
     Args:
@@ -94,6 +90,11 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
     Returns:
         ID and name of the processed dataset.
     """
+    import os
+    import logging
+    from pathlib import Path
+    from tqdm import tqdm
+    from clearml import Dataset, Task
 
     task = Task.init(
         project_name=project_name,
@@ -150,6 +151,9 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
 
 
 if __name__ == "__main__":
+    import logging
+    import argparse
+
     # Set logging level to INFO
     logging.basicConfig(level=logging.INFO)
 

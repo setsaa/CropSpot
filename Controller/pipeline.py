@@ -1,11 +1,3 @@
-import os
-import argparse
-from clearml import PipelineController, Task
-from upload_data import upload_dataset, download_dataset
-from preprocess_data import preprocess_dataset, preprocess_images
-from model_training import train_model
-
-
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
@@ -24,6 +16,11 @@ def create_CropSpot_pipeline(
     Returns:
         None
     """
+
+    from clearml import PipelineController, Task
+    from upload_data import upload_dataset, download_dataset
+    from preprocess_data import preprocess_dataset, preprocess_images
+    from model_training import train_model
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
@@ -134,6 +131,8 @@ def create_CropSpot_pipeline(
 
 
 if __name__ == "__main__":
+    import argparse
+
     parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
     parser.add_argument(
         "--pipeline_name",

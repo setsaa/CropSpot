@@ -1,15 +1,3 @@
-import os
-import argparse
-import matplotlib.pyplot as plt
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications import ResNet50V2
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from clearml import Task, Dataset, OutputModel
-
-
 def train_model(preprocessed_dataset_name, project_name, queue_name):
     """
     Train the CropSpot model using the preprocessed dataset.
@@ -22,6 +10,15 @@ def train_model(preprocessed_dataset_name, project_name, queue_name):
     Returns:
         ID of the trained model
     """
+    import os
+    import matplotlib.pyplot as plt
+    from tensorflow.keras.models import Model
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    from tensorflow.keras.applications import ResNet50V2
+    from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from tensorflow.keras.optimizers import Adam
+    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
@@ -109,6 +106,8 @@ def train_model(preprocessed_dataset_name, project_name, queue_name):
 
 
 if __name__ == "__main__":
+    import argparse
+
     # Create the parser
     parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
 
