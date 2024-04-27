@@ -1,4 +1,4 @@
-def train_model(preprocessed_dataset_name, project_name, queue_name):
+def train_model(dataset_name, project_name, queue_name):
     """
     Train the CropSpot model using the preprocessed dataset.
 
@@ -23,7 +23,7 @@ def train_model(preprocessed_dataset_name, project_name, queue_name):
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
     # Load preprocessed dataset
-    dataset = Dataset.get(dataset_name=preprocessed_dataset_name)
+    dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
 
     # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
     dataset_path = "Dataset/Preprocessed"
@@ -92,7 +92,7 @@ def train_model(preprocessed_dataset_name, project_name, queue_name):
     model_file_name = "CropSpot_Model.h5"
     resnet_model.save(model_dir + "/" + model_file_name)
 
-    output_model = OutputModel(task=task)
+    output_model = OutputModel(task=task, name="CropSpot_Model", framework="Tensorflow")
 
     # Upload the model weights to ClearML
     output_model.update_weights(model_file_name, upload_uri="https://files.clear.ml")

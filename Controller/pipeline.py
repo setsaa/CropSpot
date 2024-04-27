@@ -19,7 +19,7 @@ def create_CropSpot_pipeline(
 
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
-    from preprocess_data import preprocess_dataset, preprocess_images
+    from preprocess_data import preprocess_dataset
     from model_training import train_model
 
     # Initialize a new pipeline controller task
@@ -64,13 +64,12 @@ def create_CropSpot_pipeline(
         task_name="Preprocess Uploaded Data",
         function=preprocess_dataset,
         function_kwargs=dict(
-            raw_dataset_name="${Data_Upload.raw_dataset_name}",
+            dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
             queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["processed_dataset_id", "processed_dataset_name"],
-        helper_functions=[preprocess_images],
         parents=["Data_Upload"],
         project_name=project_name,
         cache_executed_step=False,
@@ -82,12 +81,12 @@ def create_CropSpot_pipeline(
         task_name="Train Model",
         function=train_model,
         function_kwargs=dict(
-            dataset_name="${Data_Preprocessing.processed_dataset_name}",
+            dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
             queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
-        function_return=["model_file_name"],
+        function_return=["model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=False,
