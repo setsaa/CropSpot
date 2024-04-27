@@ -6,15 +6,11 @@ from preprocess_data import preprocess_dataset, preprocess_images
 from model_training import train_model
 
 
-def create_CropSpot_pipeline(
-    pipeline_name,
-    project_name,
-    dataset_name,
-    queue_name,
-):
-    # from clearml import PipelineDecorator, Task
-    # from upload_data import upload_dataset, download_dataset
-    # from preprocess_data import preprocess_dataset, preprocess_images
+def create_CropSpot_pipeline(pipeline_name, project_name, dataset_name, queue_name, pipeline):
+    from clearml import PipelineController, Task
+    from upload_data import upload_dataset, download_dataset
+    from preprocess_data import preprocess_dataset, preprocess_images
+    from model_training import train_model
 
     """
     Create a ClearML pipeline for the CropSpot project.
@@ -29,15 +25,15 @@ def create_CropSpot_pipeline(
         None
     """
 
-    # Initialize a new pipeline controller task
-    pipeline = PipelineController(
-        name=pipeline_name,
-        project=project_name,
-        version="1.0",
-        add_pipeline_tags=True,
-        target_project=project_name,
-        # auto_version_bump=True,
-    )
+    # # Initialize a new pipeline controller task
+    # pipeline = PipelineController(
+    #     name=pipeline_name,
+    #     project=project_name,
+    #     version="1.0",
+    #     add_pipeline_tags=True,
+    #     target_project=project_name,
+    #     auto_version_bump=True,
+    # )
 
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
@@ -134,49 +130,5 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    # pipeline.start(queue=queue_name)
-    pipeline.start_locally(run_pipeline_steps_locally=True)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
-    parser.add_argument(
-        "--pipeline_name",
-        type=str,
-        required=False,
-        default="CropSpot Pipeline",
-        help="Name of the pipeline",
-    )
-    parser.add_argument(
-        "--dataset_project",
-        type=str,
-        required=False,
-        default="CropSpot",
-        help="Project name for datasets",
-    )
-    parser.add_argument(
-        "--dataset_name",
-        type=str,
-        required=False,
-        default="TomatoDiseaseDataset",
-        help="Name for the raw dataset",
-    )
-    parser.add_argument(
-        "--queue_name",
-        type=str,
-        required=False,
-        default="default",
-        # default="helldiver",
-        help="ClearML queue name",
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Call the function with the parsed arguments
-    create_CropSpot_pipeline(
-        pipeline_name=args.pipeline_name,
-        project_name=args.dataset_project,
-        dataset_name=args.dataset_name,
-        queue_name=args.queue_name,
-    )
+    # pipeline.start_locally(run_pipeline_steps_locally=True)
+    pipeline.start(queue_name)

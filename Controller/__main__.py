@@ -1,6 +1,7 @@
 import argparse
 
 # Import the function to create the pipeline
+from clearml import PipelineController
 from pipeline import create_CropSpot_pipeline
 
 if __name__ == "__main__":
@@ -33,13 +34,23 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="default",
-        # default="helldiver",
+        # default="default",
+        default="helldiver",
         help="ClearML queue name",
     )
 
     # Parse the arguments
     args = parser.parse_args()
+
+    # Initialize a new pipeline controller task
+    pipeline = PipelineController(
+        name=args.pipeline_name,
+        project=args.project_name,
+        version="1.0",
+        add_pipeline_tags=True,
+        target_project=args.project_name,
+        auto_version_bump=True,
+    )
 
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
@@ -47,4 +58,5 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
+        pipeline=pipeline,
     )
