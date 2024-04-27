@@ -10,12 +10,28 @@ from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from clearml import Task, Dataset, OutputModel
 
 
-def train_model(preprocessed_dataset_id, project_name, queue_name):
-    task = Task.init(project_name=project_name, task_name="Model Training")
+def train_model(preprocessed_dataset_name, project_name, queue_name):
+    """
+    Train the CropSpot model using the preprocessed dataset.
+
+    Args:
+        preprocessed_dataset_name (str): Name of the preprocessed dataset
+        project_name (str): Name of the ClearML project
+        queue_name (str): Name of the ClearML queue for remote execution
+
+    Returns:
+        ID of the trained model
+    """
+
+    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
     # Load preprocessed dataset
-    dataset = Dataset.get(dataset_id=preprocessed_dataset_id)
-    dataset_path = dataset.get_local_copy()
+    dataset = Dataset.get(dataset_name=preprocessed_dataset_name)
+
+    # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
+    dataset_path = "Dataset/Preprocessed"
+    if not os.path.exists(dataset_path):
+        dataset.get_mutable_local_copy(dataset_path)
 
     # Get first category
     first_category = os.listdir(dataset_path)[0]
@@ -31,7 +47,7 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.8
+        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.9
     )
 
     train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
@@ -67,7 +83,7 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
     resnet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
     # Train the model
-    resnet_model.fit(
+    resnet_history = resnet_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
@@ -75,8 +91,9 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
     )
 
     # Save and upload the model to ClearML
+    model_dir = "Models"
     model_file_name = "CropSpot_Model.h5"
-    resnet_model.save(model_file_name)
+    resnet_model.save(model_dir + "/" + model_file_name)
 
     output_model = OutputModel(task=task)
 
@@ -88,20 +105,22 @@ def train_model(preprocessed_dataset_id, project_name, queue_name):
 
     task.upload_artifact("Trained Model", artifact_object=model_file_name)
 
-    if os.path.exists("CropSpot_Model.h5"):
-        os.remove("CropSpot_Model.h5")
-
     return output_model.id
 
 
 if __name__ == "__main__":
+    # Create the parser
     parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
+
+    # Add arguments
     parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDataset_preprocessed", help="Name of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
     parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
 
+    # Parse the arguments
     args = parser.parse_args()
 
+    # Call the function with the parsed arguments
     model_id = train_model(args.dataset_name, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
