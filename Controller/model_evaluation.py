@@ -1,27 +1,15 @@
-import argparse
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from keras.preprocessing.image import ImageDataGenerator
-from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
-from itertools import cycle
-from math import ceil
-import pickle as pkl
-import tensorflow as tf
-from sklearn.preprocessing import label_binarize
-
-
 def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size):
-    # import numpy as np
-    # import matplotlib.pyplot as plt
-    # import seaborn as sns
-    # from keras.preprocessing.image import ImageDataGenerator
-    # from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
-    # from itertools import cycle
-    # from math import ceil
-    # import pickle as pkl
-    # import tensorflow as tf
-    # from sklearn.preprocessing import label_binarize
+    import argparse
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
+    from sklearn.preprocessing import label_binarize
+    from itertools import cycle
+    from math import ceil
+    import pickle as pkl
+    import tensorflow as tf
 
     # Load the model
     model = tf.keras.models.load_model(model_path)
@@ -82,7 +70,12 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
 
 
 if __name__ == "__main__":
+    import argparse
+
+    # Setup arg parse
     parser = argparse.ArgumentParser(description="Evaluate ResNet Model")
+
+    # Add arguments
     parser.add_argument("--model_path", type=str, required=True, help="Path to the trained model file")
     parser.add_argument("--history_path", type=str, required=True, help="Path to the training history file")
     parser.add_argument("--test_data_dir", type=str, required=True, help="Directory containing test data")
@@ -91,4 +84,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    evaluate_model(args.model_path, args.history_path, args.test_data_dir, args.batch_size, args.img_size)
+    # Evaluate the model
+    evaluate_model(args.model_id, args.history_path, args.test_data_dir, args.batch_size, args.img_size)

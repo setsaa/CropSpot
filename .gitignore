@@ -187,7 +187,6 @@ yarn-error.log*
 
 # ignore the "Dataset" folder
 Dataset/
-TomatoDiseaseDataset/
 
 # ignore the trained models (temporarily)
 *.h5
@@ -199,10 +198,6 @@ local_testing.ipynb
 
 temp_env/
 tmp_env/
-
-# ignore the trained models (temporarily)
-*.h5
-*.pth
 
 # Clearml
 clearml.conf

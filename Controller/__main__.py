@@ -1,6 +1,4 @@
 import argparse
-
-# Import the function to create the pipeline
 from pipeline import create_CropSpot_pipeline
 
 if __name__ == "__main__":
@@ -34,7 +32,6 @@ if __name__ == "__main__":
         type=str,
         required=False,
         default="default",
-        # default="helldiver",
         help="ClearML queue name",
     )
 
