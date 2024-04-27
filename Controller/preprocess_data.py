@@ -103,15 +103,21 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
 
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=raw_dataset_name)
-    raw_data_path = raw_dataset.get_local_copy()
 
     # Create directories for preprocessed data
-    preprocessed_dir = Path("./preprocessed")
+    preprocessed_dir = Path("Dataset/preprocessed")
     preprocessed_dir.mkdir(exist_ok=True)
 
+    # Check if the dataset is already downloaded
+    if os.path.exists(preprocessed_dir) and os.listdir(preprocessed_dir):
+        logging.info("Preprocessed data already exists")
+    else:
+        # Download the dataset
+        raw_dataset.get_mutable_local_copy(preprocessed_dir)
+
     # Process images
-    for category in os.listdir(raw_data_path):
-        category_path = Path(raw_data_path) / category
+    for category in os.listdir(preprocessed_dir):
+        category_path = Path(preprocessed_dir) / category
         preprocess_images(category_path, preprocessed_dir)
 
     # Create a new dataset for the preprocessed images
@@ -126,17 +132,19 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
 
     # Upload the training dataset to ClearML
     processed_dataset.upload()
+
+    # Finalize the dataset
     processed_dataset.finalize()
 
-    # Clean up
-    for item in preprocessed_dir.rglob("*"):
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir():
-            for subitem in item.rglob("*"):
-                subitem.unlink()
-            item.rmdir()
-    preprocessed_dir.rmdir()
+    # # Clean up the preprocessed directory
+    # for item in tqdm(preprocessed_dir.rglob("*"), desc="Cleaning up"):
+    #     if item.is_file():
+    #         item.unlink()
+    #     elif item.is_dir():
+    #         for subitem in tqdm(item.rglob("*"), desc=f"Cleaning up {item.name}"):
+    #             subitem.unlink()
+    #         item.rmdir()
+    # preprocessed_dir.rmdir()
 
     return processed_dataset.id, processed_dataset.name
 
