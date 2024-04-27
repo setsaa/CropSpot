@@ -203,3 +203,6 @@ tmp_env/
 # ignore the trained models (temporarily)
 *.h5
 *.pth
+
+# Clearml
+clearml.conf
