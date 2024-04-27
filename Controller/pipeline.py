@@ -7,24 +7,24 @@ from model_training import train_model
 
 
 def create_CropSpot_pipeline(
-    pipeline_name: str = "CropSpot Pipeline",
-    project_name: str = "CropSpot",
-    dataset_name: str = "TomatoDiseaseDataset",
-    queue_name: str = "helldiver",
+    pipeline_name,
+    project_name,
+    dataset_name,
+    queue_name,
 ):
-    from clearml import PipelineController, Task
-    from upload_data import upload_dataset, download_dataset
-    from preprocess_data import preprocess_dataset, preprocess_images
+    # from clearml import PipelineDecorator, Task
+    # from upload_data import upload_dataset, download_dataset
+    # from preprocess_data import preprocess_dataset, preprocess_images
 
     """
     Create a ClearML pipeline for the CropSpot project.
-    
+
     Parameters:
         pipeline_name (str): Name of the pipeline.
         project_name (str): Name of the ClearML project.
         dataset_name (str): Name of the dataset.
         queue_name (str): Name of the queue to execute the pipeline.
-        
+
     Returns:
         None
     """
@@ -35,8 +35,8 @@ def create_CropSpot_pipeline(
         project=project_name,
         version="1.0",
         add_pipeline_tags=True,
-        auto_version_bump=True,
         target_project=project_name,
+        # auto_version_bump=True,
     )
 
     # Add pipeline-level parameters with defaults from function arguments
@@ -134,7 +134,8 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue=queue_name)
+    # pipeline.start(queue=queue_name)
+    pipeline.start_locally(run_pipeline_steps_locally=True)
 
 
 if __name__ == "__main__":
@@ -143,7 +144,7 @@ if __name__ == "__main__":
         "--pipeline_name",
         type=str,
         required=False,
-        default="CropSpot Data Pipeline",
+        default="CropSpot Pipeline",
         help="Name of the pipeline",
     )
     parser.add_argument(
@@ -164,7 +165,8 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="default",
+        # default="helldiver",
         help="ClearML queue name",
     )
 

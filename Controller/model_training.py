@@ -11,18 +11,18 @@ from clearml import Task, Dataset, OutputModel
 
 
 def train_model(preprocessed_dataset_id, project_name, queue_name):
-    import os
-    import matplotlib.pyplot as plt
-    from keras.models import Model
-    from keras.preprocessing.image import ImageDataGenerator
-    from keras.applications import ResNet50V2
-    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from keras.optimizers import Adam
-    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-    from clearml import Task, Dataset, OutputModel
+    # import os
+    # import matplotlib.pyplot as plt
+    # from keras.models import Model
+    # from keras.preprocessing.image import ImageDataGenerator
+    # from keras.applications import ResNet50V2
+    # from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    # from keras.optimizers import Adam
+    # from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    # from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="Model Training")
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     # Load preprocessed dataset
     dataset = Dataset.get(dataset_id=preprocessed_dataset_id)

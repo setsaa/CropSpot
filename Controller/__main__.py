@@ -33,7 +33,8 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="default",
+        # default="helldiver",
         help="ClearML queue name",
     )
 

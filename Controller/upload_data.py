@@ -8,11 +8,11 @@ from clearml import Task, Dataset
 
 
 def download_dataset(dataset_dir, dataset_name):
-    import os
-    import shutil
-    import requests
-    import zipfile
-    from tqdm import tqdm
+    # import os
+    # import shutil
+    # import requests
+    # import zipfile
+    # from tqdm import tqdm
 
     """
     Download and extract dataset from URL.
@@ -84,13 +84,13 @@ def upload_dataset(project_name, dataset_name, queue_name):
         dataset_id (str): ID of the uploaded dataset.
         dataset_name (str): Name of the uploaded dataset.
     """
-    import os
-    import shutil
-    from clearml import Task, Dataset
+    # import os
+    # import shutil
+    # from clearml import Task, Dataset
 
     # Create a ClearML task
     task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     dataset_dir = "./"
 
@@ -128,7 +128,7 @@ def upload_dataset(project_name, dataset_name, queue_name):
 
 
 if __name__ == "__main__":
-    import argparse
+    # import argparse
 
     # Initialize argument parser
     parser = argparse.ArgumentParser(description="Upload Dataset Directory to ClearML")
