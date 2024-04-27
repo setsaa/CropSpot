@@ -143,7 +143,7 @@ if __name__ == "__main__":
         "--pipeline_name",
         type=str,
         required=False,
-        default="CropSpot Data Pipeline",
+        default="CropSpot Pipeline",
         help="Name of the pipeline",
     )
     parser.add_argument(

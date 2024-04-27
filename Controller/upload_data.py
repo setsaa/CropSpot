@@ -90,7 +90,7 @@ def upload_dataset(project_name, dataset_name, queue_name):
 
     # Create a ClearML task
     task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     dataset_dir = "./"
 
