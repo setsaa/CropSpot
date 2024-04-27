@@ -44,6 +44,9 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
 
+    # Set the default execution queue
+    pipeline.set_default_execution_queue(queue_name)
+
     # Step 1: Upload Data
     pipeline.add_function_step(
         name="Data_Upload",
@@ -55,9 +58,8 @@ def create_CropSpot_pipeline(
         },
         task_type=Task.TaskTypes.data_processing,
         task_name="Upload Raw Data",
-        function_return=["raw_dataset_id", "dataset_name"],
+        function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
-        execution_queue=queue_name,
         cache_executed_step=False,
     )
 
@@ -66,7 +68,7 @@ def create_CropSpot_pipeline(
         name="Data_Preprocessing",
         function=preprocess_dataset,
         function_kwargs={
-            "dataset_name": "${pipeline.dataset_name}",
+            "dataset_name": "${Data_Upload.raw_dataset_name}",
             "project_name": "${pipeline.project_name}",
             "queue_name": "${pipeline.queue_name}",
         },
@@ -74,7 +76,6 @@ def create_CropSpot_pipeline(
         task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id", "processed_dataset_name"],
         helper_functions=[preprocess_images],
-        execution_queue=queue_name,
         cache_executed_step=False,
     )
 
@@ -90,7 +91,6 @@ def create_CropSpot_pipeline(
         task_type=Task.TaskTypes.training,
         task_name="Train Model",
         function_return=["model_file_name"],
-        execution_queue=queue_name,
         cache_executed_step=False,
     )
 
@@ -105,7 +105,6 @@ def create_CropSpot_pipeline(
     #     },
     #     task_type=Task.TaskTypes.testing,
     #     task_name="Evaluate Model",
-    #     execution_queue=queue_name,
     #     cache_executed_step=False,
     # )
 
@@ -120,13 +119,12 @@ def create_CropSpot_pipeline(
     #     },
     #     task_type=Task.TaskTypes.system,
     #     task_name="Update Model",
-    #     execution_queue=queue_name,
     #     cache_executed_step=False,
     # )
 
     # Start the pipeline
-    pipeline.start(queue=queue_name)
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
+    pipeline.start(queue=queue_name)
 
 
 if __name__ == "__main__":
