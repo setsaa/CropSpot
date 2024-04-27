@@ -87,7 +87,33 @@ def preprocess_images(dataset_dir, preprocessed_dir, remove_outliers=False):
     new_count = len(os.listdir(preprocessed_category_dir))
     print(f"Images in {category}: {new_count} (from {len(os.listdir(dataset_dir))})")
 
+def preprocess_dataset(local_dataset_dir, preprocessed_dir, project_name):
+    import os
+    from pathlib import Path
+    from PIL import Image
+    import numpy as np
+    from tqdm import tqdm
 
+    # No need to initialize a ClearML task or execute remotely since we are not using ClearML in this function
+
+    # Validate that the directories are Path objects, convert if necessary
+    if not isinstance(local_dataset_dir, Path):
+        local_dataset_dir = Path(local_dataset_dir)
+    if not isinstance(preprocessed_dir, Path):
+        preprocessed_dir = Path(preprocessed_dir)
+
+    # Create the directory for preprocessed data if it does not exist
+    preprocessed_dir.mkdir(parents=True, exist_ok=True)
+
+    # Process images from each category in the raw dataset directory
+    for category in os.listdir(local_dataset_dir):
+        category_path = local_dataset_dir / category
+        preprocess_images(category_path, preprocessed_dir)
+
+    print(f"Preprocessing complete. Preprocessed images are stored in {preprocessed_dir}.")
+
+
+'''
 def preprocess_dataset(raw_dataset_name, project_name, queue_name):
     """
     Preprocess images in the raw dataset and upload the preprocessed images to ClearML.
@@ -150,7 +176,27 @@ def preprocess_dataset(raw_dataset_name, project_name, queue_name):
 
     return processed_dataset.id, processed_dataset.name
 
+'''
+    
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
+    parser.add_argument("--local_dataset_dir", type=str, default="Dataset\Raw Data", required=True, help="Path to the local dataset directory")
+    parser.add_argument("--preprocessed_dir", type=str, default="Dataset\Preprocessed", help="Path where preprocessed images will be stored")
+    parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
+    
+    args = parser.parse_args()
 
+    preprocess_dataset(
+        local_dataset_dir=args.local_dataset_dir,
+        preprocessed_dir=args.preprocessed_dir,
+        project_name=args.project_name,
+    )
+
+    print("Preprocessing complete.")
+
+
+'''
 if __name__ == "__main__":
     # import argparse
     # import logging
@@ -161,6 +207,7 @@ if __name__ == "__main__":
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
     parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
+    parser.add_argument("--local_dataset_dir", type=str, required=True, help="Path to the local dataset directory")
     parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
@@ -175,3 +222,5 @@ if __name__ == "__main__":
     )
 
     print(f"Preprocessed dataset uploaded with ID: {processed_dataset_id}")
+
+'''
