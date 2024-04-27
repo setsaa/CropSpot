@@ -1,5 +1,8 @@
 import argparse
 
+# Import the function to create the pipeline
+from pipeline import create_CropSpot_pipeline
+
 if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser(description="Run CropSpot Pipeline")
@@ -36,9 +39,6 @@ if __name__ == "__main__":
 
     # Parse the arguments
     args = parser.parse_args()
-
-    # Import the function to create the pipeline
-    from pipeline import create_CropSpot_pipeline
 
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(

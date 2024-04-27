@@ -1,4 +1,7 @@
+import argparse
 from clearml import PipelineController, Task
+from upload_data import upload_dataset, download_dataset
+from preprocess_data import preprocess_dataset, preprocess_images
 
 
 def create_data_pipeline(
@@ -41,6 +44,7 @@ def create_data_pipeline(
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
 
+    # Set the default execution queue
     pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Raw Data
@@ -58,7 +62,6 @@ def create_data_pipeline(
         helper_functions=[download_dataset],
         cache_executed_step=False,
         project_name=project_name,
-        # execution_queue=queue_name,
     )
 
     # Step 2: Preprocess Data
@@ -77,12 +80,11 @@ def create_data_pipeline(
         cache_executed_step=False,
         parents=["Data_Upload"],
         project_name=project_name,
-        # execution_queue=queue_name,
     )
 
     # Start the pipeline
-    pipeline.start(queue=queue_name)
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
+    pipeline.start(queue=queue_name)
 
 
 if __name__ == "__main__":
