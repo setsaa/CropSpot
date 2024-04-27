@@ -50,6 +50,7 @@ def create_CropSpot_pipeline(
     # Step 1: Upload Data
     pipeline.add_function_step(
         name="Data_Upload",
+        task_name="Upload Raw Data",
         function=upload_dataset,
         function_kwargs={
             "project_name": "${pipeline.project_name}",
@@ -57,15 +58,17 @@ def create_CropSpot_pipeline(
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.data_processing,
-        task_name="Upload Raw Data",
         function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
+        parents=None,
+        project_name=project_name,
         cache_executed_step=False,
     )
 
     # Step 2: Preprocess Data
     pipeline.add_function_step(
         name="Data_Preprocessing",
+        task_name="Preprocess Uploaded Data",
         function=preprocess_dataset,
         function_kwargs={
             "dataset_name": "${Data_Upload.raw_dataset_name}",
@@ -73,15 +76,17 @@ def create_CropSpot_pipeline(
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.data_processing,
-        task_name="Preprocess Uploaded Data",
         function_return=["processed_dataset_id", "processed_dataset_name"],
         helper_functions=[preprocess_images],
+        parents=["Data_Upload"],
+        project_name=project_name,
         cache_executed_step=False,
     )
 
     # Step 3: Train Model
     pipeline.add_function_step(
         name="Model_Training",
+        task_name="Train Model",
         function=train_model,
         function_kwargs={
             "dataset_name": "${Data_Preprocessing.processed_dataset_name}",
@@ -89,14 +94,16 @@ def create_CropSpot_pipeline(
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.training,
-        task_name="Train Model",
         function_return=["model_file_name"],
+        parents=["Data_Preprocessing"],
+        project_name=project_name,
         cache_executed_step=False,
     )
 
     # # Step 4: Evaluate Model
     # pipeline.add_function_step(
-    #     name="evaluate_model",
+    #     name="Model_Evaluation",
+    #     task_name="Evaluate Model",
     #     function=evaluate_model,
     #     function_kwargs={
     #         "dataset_name": "${pipeline.dataset_name}",
@@ -104,13 +111,15 @@ def create_CropSpot_pipeline(
     #         "queue_name": "${pipeline.queue_name}",
     #     },
     #     task_type=Task.TaskTypes.testing,
-    #     task_name="Evaluate Model",
+    #     project_name=project_name,
+    #     parents=["Model_Training"],
     #     cache_executed_step=False,
     # )
 
     # # Step 5: Update Model in GitHub Repository
     # pipeline.add_function_step(
-    #     name="update_model",
+    #     name="Model_Update",
+    #     task_name="Update Model",
     #     function=update_model,
     #     function_kwargs={
     #         "dataset_name": "${pipeline.dataset_name}",
@@ -118,7 +127,8 @@ def create_CropSpot_pipeline(
     #         "queue_name": "${pipeline.queue_name}",
     #     },
     #     task_type=Task.TaskTypes.system,
-    #     task_name="Update Model",
+    #     project_name=project_name,
+    #     parents=["Model_Evaluation"],
     #     cache_executed_step=False,
     # )
 
