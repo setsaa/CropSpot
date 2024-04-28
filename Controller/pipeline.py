@@ -215,7 +215,7 @@ if __name__ == "__main__":
         "--branch",
         type=str,
         required=False,
-        default="Crop-33-Deploy-MLOPs-pipeline",
+        default="CROP-28-AUTOMATED",
         help="The branch to commit and push changes to",
     )
     parser.add_argument(
