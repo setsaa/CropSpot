@@ -1,16 +1,16 @@
-def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size):
-    import argparse
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
-    from sklearn.preprocessing import label_binarize
-    from itertools import cycle
-    from math import ceil
-    import pickle as pkl
-    import tensorflow as tf
+import argparse
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
+from sklearn.preprocessing import label_binarize
+from itertools import cycle
+from math import ceil
+import pickle as pkl
+import tensorflow as tf
 
+def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size):
     # Load the model
     model = tf.keras.models.load_model(model_path)
 
@@ -20,7 +20,10 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
-    test_generator = test_datagen.flow_from_directory(test_data_dir, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=False, seed=42)
+    test_generator = test_datagen.flow_from_directory(
+        test_data_dir, target_size=(img_size, img_size), batch_size=batch_size, 
+        class_mode="categorical", shuffle=False, seed=42
+    )
 
     # Calculate the correct number of steps per epoch
     steps = ceil(test_generator.samples / test_generator.batch_size)
@@ -28,7 +31,7 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     # Generate predictions
     predictions = model.predict(test_generator, steps=steps)
     y_pred = np.argmax(predictions, axis=1)
-    y_true = test_generator.classes[: len(y_pred)]
+    y_true = test_generator.classes[:len(y_pred)]
 
     # Evaluate the model
     score = model.evaluate(test_generator)
@@ -47,9 +50,8 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     plt.title("Confusion Matrix")
     plt.show()
 
+    # Prepare for ROC curve plot
     y_test_binarized = label_binarize(y_true, classes=np.arange(test_generator.num_classes))
-
-    # Compute ROC curve and ROC area for each class
     n_classes = y_test_binarized.shape[1]
     fpr, tpr, roc_auc = dict(), dict(), dict()
     colors = cycle(["blue", "red", "green"])
@@ -57,7 +59,8 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     for i, color in zip(range(n_classes), colors):
         fpr[i], tpr[i], _ = roc_curve(y_test_binarized[:, i], predictions[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
-        plt.plot(fpr[i], tpr[i], color=color, lw=2, label="ROC curve of class {0} (area = {1:0.2f})".format(i, roc_auc[i]))
+        plt.plot(fpr[i], tpr[i], color=color, lw=2, 
+                 label="ROC curve of class {0} (area = {1:0.2f})".format(i, roc_auc[i]))
 
     plt.plot([0, 1], [0, 1], "k--", lw=2)
     plt.xlim([0.0, 1.0])
@@ -68,12 +71,8 @@ def evaluate_model(model_path, history_path, test_data_dir, batch_size, img_size
     plt.legend(loc="lower right")
     plt.show()
 
-
 if __name__ == "__main__":
-    import argparse
-
-    # Setup arg parse
-    parser = argparse.ArgumentParser(description="Evaluate ResNet Model")
+    parser = argparse.ArgumentParser(description="Evaluate the model")
 
     # Add arguments
     parser.add_argument("--model_path", type=str, required=True, help="Path to the trained model file")
@@ -85,4 +84,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Evaluate the model
-    evaluate_model(args.model_id, args.history_path, args.test_data_dir, args.batch_size, args.img_size)
+    evaluate_model(args.model_path, args.history_path, args.test_data_dir, args.batch_size, args.img_size)

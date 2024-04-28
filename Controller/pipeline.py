@@ -21,6 +21,9 @@ def create_CropSpot_pipeline(
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset
     from model_training import train_model
+    from model_evaluation import evaluate_model
+    from update_model import update_model
+
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
@@ -92,37 +95,37 @@ def create_CropSpot_pipeline(
         cache_executed_step=False,
     )
 
-    # # Step 4: Evaluate Model
-    # pipeline.add_function_step(
-    #     name="Model_Evaluation",
-    #     task_name="Evaluate Model",
-    #     function=evaluate_model,
-    #     function_kwargs={
-    #         "dataset_name": "${pipeline.dataset_name}",
-    #         "project_name": "${pipeline.project_name}",
-    #         "queue_name": "${pipeline.queue_name}",
-    #     },
-    #     task_type=Task.TaskTypes.testing,
-    #     project_name=project_name,
-    #     parents=["Model_Training"],
-    #     cache_executed_step=False,
-    # )
+    # Step 4: Evaluate Model
+    pipeline.add_function_step(
+        name="Model_Evaluation",
+        task_name="Evaluate Model",
+        function=evaluate_model,
+        function_kwargs={
+            "dataset_name": "${pipeline.dataset_name}",
+            "project_name": "${pipeline.project_name}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.testing,
+        project_name=project_name,
+        parents=["Model_Training"],
+        cache_executed_step=False,
+    )
 
-    # # Step 5: Update Model in GitHub Repository
-    # pipeline.add_function_step(
-    #     name="Model_Update",
-    #     task_name="Update Model",
-    #     function=update_model,
-    #     function_kwargs={
-    #         "dataset_name": "${pipeline.dataset_name}",
-    #         "project_name": "${pipeline.project_name}",
-    #         "queue_name": "${pipeline.queue_name}",
-    #     },
-    #     task_type=Task.TaskTypes.system,
-    #     project_name=project_name,
-    #     parents=["Model_Evaluation"],
-    #     cache_executed_step=False,
-    # )
+    # Step 5: Update Model in GitHub Repository
+    pipeline.add_function_step(
+        name="Model_Update",
+        task_name="Update Model",
+        function=update_model,
+        function_kwargs={
+            "dataset_name": "${pipeline.dataset_name}",
+            "project_name": "${pipeline.project_name}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.system,
+        project_name=project_name,
+        parents=["Model_Evaluation"],
+        cache_executed_step=False,
+    )
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
