@@ -13,6 +13,7 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     import os
     import logging
     import numpy as np
+    import shutil
     from PIL import Image
     from pathlib import Path
     from clearml import Dataset, Task
@@ -22,64 +23,58 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=dataset_name)
 
-    # Check if the raw dataset is already downloaded. If not, download it and preprocess the images.
-    dataset_path = "Dataset/Raw Data"
-    if not os.path.exists(dataset_path):
+    # Check if the preprocessed dataset is already downloaded. If not, download it and preprocess the images.
+    preprocessed_dir = Path("Dataset/Preprocessed")
+    if not preprocessed_dir.exists():
         print("Downloading the dataset...")
+        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
+    else:
+        print("Dataset already downloaded")
 
-        # Create directories for preprocessed data
-        preprocessed_dir = Path("Dataset/Preprocessed")
-        preprocessed_dir.mkdir(exist_ok=True)
-
-        # Clean up the preprocessed directory
-        if preprocessed_dir.exists():
-            for item in preprocessed_dir.iterdir():
-                if item.is_dir():
-                    for subitem in item.iterdir():
-                        subitem.unlink()
-                    item.rmdir()
-            preprocessed_dir.rmdir()
+        # Remove the old preprocessed directory
+        print("Removing the old preprocessed directory...")
+        shutil.rmtree(preprocessed_dir)
+        preprocessed_dir.mkdir()
 
         # Download the dataset
-        raw_dataset.get_mutable_local_copy(preprocessed_dir)
+        print("Downloading latest dataset...")
+        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
 
-        # Process images
-        for category in os.listdir(preprocessed_dir):
-            category_path = Path(preprocessed_dir) / category
+    # New preprocessed directory
+    print("Processing images...")
+    for category in os.listdir(preprocessed_dir):
+        category_path = Path(preprocessed_dir) / category
 
-            # Remove non-jpg files
-            count = 0
-            for file in os.listdir(category_path):
-                if not file.endswith(".jpg"):
-                    os.remove(os.path.join(category_path, file))
-                    count += 1
-            print(f"Removed {count} non-jpg files.")
+        # Remove non-jpg files
+        count = 0
+        for file in os.listdir(category_path):
+            if not file.endswith(".jpg"):
+                os.remove(os.path.join(category_path, file))
+                count += 1
+        print(f"Removed {count} non-jpg files.")
 
-            # Remove corrupt images
-            removed_files = []
-            for file in os.listdir(category_path):
-                img_path = os.path.join(category_path, file)
-                try:
-                    img = Image.open(img_path)
-                    np.array(img).flatten()
-                except (IOError, SyntaxError) as e:
-                    removed_files.append(file)
-                    os.remove(img_path)
-                    logging.info(f"Removed corrupt image: {file} due to {e}")
+        # Remove corrupt images
+        removed_files = []
+        for file in os.listdir(category_path):
+            img_path = os.path.join(category_path, file)
+            try:
+                img = Image.open(img_path)
+                np.array(img).flatten()
+            except (IOError, SyntaxError) as e:
+                removed_files.append(file)
+                os.remove(img_path)
+                logging.info(f"Removed corrupt image: {file} due to {e}")
 
-            # Validate image dimensions
-            dimensions = []
-            for file in os.listdir(category_path):
-                img = Image.open(os.path.join(category_path, file))
-                dimensions.append(img.size)
+        # Validate image dimensions
+        dimensions = []
+        for file in os.listdir(category_path):
+            img = Image.open(os.path.join(category_path, file))
+            dimensions.append(img.size)
 
-            if len(set(dimensions)) > 1:
-                print("Images have different dimensions.")
-            else:
-                print("All images have the dimension " + str(dimensions[0]))
-    else:
-        print("Preprocessed Dataset already prepared")
-        preprocessed_dir = "Dataset/Preprocessed"
+        if len(set(dimensions)) > 1:
+            print("Images have different dimensions.")
+        else:
+            print("All images have the dimension " + str(dimensions[0]))
 
     # Create a new dataset for the preprocessed images
     processed_dataset = Dataset.create(
