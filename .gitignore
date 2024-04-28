@@ -194,6 +194,10 @@ Dataset/
 
 # Other
 local_testing.ipynb
+*.zip
 
-# ignore the trained models (temporarily)
-*.h5
+temp_env/
+tmp_env/
+
+# Clearml
+clearml.conf
