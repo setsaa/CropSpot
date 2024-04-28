@@ -147,7 +147,7 @@ def train_model(dataset_name, project_name, queue_name):
     output_model = OutputModel(task=task, name="CropSpot_Model", framework="Tensorflow")
 
     # Upload the model weights to ClearML
-    output_model.update_weights("Trained Models\CropSpot_Model.h5", upload_uri="https://files.clear.ml")
+    output_model.update_weights("Trained Models\CropSpot_Model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
 
     # Make sure the model is accessible
     output_model.publish()
