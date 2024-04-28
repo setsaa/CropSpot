@@ -19,6 +19,7 @@ def train_model(dataset_name, project_name, queue_name):
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
     from clearml import Task, Dataset, OutputModel
+    import pickle
 
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
@@ -74,13 +75,13 @@ def train_model(dataset_name, project_name, queue_name):
     predictions = Dense(num_classes, activation="softmax")(x)
 
     # Create model
-    resnet_model = Model(inputs=base_resNet_model.input, outputs=predictions)
+    cropspot_model = Model(inputs=base_resNet_model.input, outputs=predictions)
 
     # Compile model
-    resnet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+    cropspot_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
     # Train the model
-    resnet_history = resnet_model.fit(
+    train_history = cropspot_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
@@ -89,8 +90,15 @@ def train_model(dataset_name, project_name, queue_name):
 
     # Save and upload the model to ClearML
     model_dir = "Models"
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+
     model_file_name = "CropSpot_Model.h5"
-    resnet_model.save(model_dir + "/" + model_file_name)
+    cropspot_model.save(model_dir + "/" + model_file_name)
+
+    model_history_file_name = "CropSpot_Model_History.pkl"
+    with open(model_dir + "/" + model_history_file_name, "wb") as file:
+        pickle.dump(train_history.history, file)
 
     output_model = OutputModel(task=task, name="CropSpot_Model", framework="Tensorflow")
 
@@ -101,6 +109,7 @@ def train_model(dataset_name, project_name, queue_name):
     output_model.publish()
 
     task.upload_artifact("Trained Model", artifact_object=model_file_name)
+    task.upload_artifact("Trained Model History", artifact_object=model_history_file_name)
 
     return output_model.id
 

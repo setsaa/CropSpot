@@ -24,7 +24,6 @@ def create_CropSpot_pipeline(
     from model_evaluation import evaluate_model
     from update_model import update_model
 
-
     # Initialize a new pipeline controller task
     pipeline = PipelineController(
         name=pipeline_name,
@@ -106,24 +105,25 @@ def create_CropSpot_pipeline(
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
-        project_name=project_name,
+        function_return=["f1_score"],
         parents=["Model_Training"],
+        project_name=project_name,
         cache_executed_step=False,
     )
 
     # Step 5: Update Model in GitHub Repository
     pipeline.add_function_step(
-        name="Model_Update",
-        task_name="Update Model",
+        name="GitHub_Update",
+        task_name="Update Model Weights in GitHub Repository",
         function=update_model,
         function_kwargs={
             "dataset_name": "${pipeline.dataset_name}",
             "project_name": "${pipeline.project_name}",
             "queue_name": "${pipeline.queue_name}",
         },
-        task_type=Task.TaskTypes.system,
-        project_name=project_name,
+        task_type=Task.TaskTypes.service,
         parents=["Model_Evaluation"],
+        project_name=project_name,
         cache_executed_step=False,
     )
 
