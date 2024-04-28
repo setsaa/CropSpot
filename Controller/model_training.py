@@ -25,6 +25,9 @@ def train_model(dataset_name, project_name, queue_name):
 
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
+    model_file_name = "CropSpot_Model.h5"
+    model_history_file_name = "CropSpot_Model_History.pkl"
+
     # (Temp) Check if a trained model is already available
     trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):
