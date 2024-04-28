@@ -13,6 +13,7 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     import os
     import logging
     import numpy as np
+    import shutil
     from PIL import Image
     from pathlib import Path
     from clearml import Dataset, Task
@@ -22,23 +23,25 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=dataset_name)
 
-    # Create directories for preprocessed data
+    # Check if the preprocessed dataset is already downloaded. If not, download it and preprocess the images.
     preprocessed_dir = Path("Dataset/Preprocessed")
-    preprocessed_dir.mkdir(exist_ok=True)
+    if not preprocessed_dir.exists():
+        print("Downloading the dataset...")
+        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
+    else:
+        print("Dataset already downloaded")
 
-    # Clean up the preprocessed directory
-    if preprocessed_dir.exists():
-        for item in preprocessed_dir.iterdir():
-            if item.is_dir():
-                for subitem in item.iterdir():
-                    subitem.unlink()
-                item.rmdir()
-        preprocessed_dir.rmdir()
+        # Remove the old preprocessed directory
+        print("Removing the old preprocessed directory...")
+        shutil.rmtree(preprocessed_dir)
+        preprocessed_dir.mkdir()
 
-    # Download the dataset
-    raw_dataset.get_mutable_local_copy(preprocessed_dir)
+        # Download the dataset
+        print("Downloading latest dataset...")
+        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
 
-    # Process images
+    # New preprocessed directory
+    print("Processing images...")
     for category in os.listdir(preprocessed_dir):
         category_path = Path(preprocessed_dir) / category
 
