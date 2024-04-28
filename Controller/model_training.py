@@ -13,8 +13,10 @@ def train_model(dataset_name, project_name, queue_name):
     import os
     import matplotlib.pyplot as plt
     from tensorflow.keras.models import Model
+    from tensorflow.keras.callbacks import LambdaCallback
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
     from tensorflow.keras.applications import ResNet50V2
+    from tensorflow.keras.applications.resnet_v2 import preprocess_input
     from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
@@ -45,11 +47,21 @@ def train_model(dataset_name, project_name, queue_name):
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.9
+        rescale=1.0 / 255,
+        # preprocessing_function=preprocess_input,
+        rotation_range=45,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True,
+        zoom_range=0.25,
+        shear_range=0.2,
+        brightness_range=[0.2, 1.0],
+        validation_split=0.2,
     )
 
-    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
-    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42)
+    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
+    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="validation")
 
     # Configurations
     epochs = 200
@@ -80,16 +92,34 @@ def train_model(dataset_name, project_name, queue_name):
     # Compile model
     cropspot_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
+    # Manual logging within model.fit() callback
+    logger = task.get_logger()
+    clearml_log_callbacks = [
+        LambdaCallback(
+            on_epoch_end=lambda epoch, logs: [
+                logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
+                logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
+                logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
+                logger.report_scalar(
+                    "val_accuracy",
+                    "validation",
+                    iteration=epoch,
+                    value=logs["val_accuracy"],
+                ),
+            ]
+        )
+    ]
+
     # Train the model
     train_history = cropspot_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
-        callbacks=[learning_rate_reduction, early_stopping],
+        callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks],
     )
 
     # Save and upload the model to ClearML
-    model_dir = "Models"
+    model_dir = "Trained Models"
     if not os.path.exists(model_dir):
         os.makedirs(model_dir)
 
@@ -121,7 +151,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train CropSpot's PyTorch model on AWS SageMaker with ClearML")
 
     # Add arguments
-    parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDataset_preprocessed", help="Name of the preprocessed dataset")
+    parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDataset", help="Name of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
     parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
 

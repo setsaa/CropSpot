@@ -1,4 +1,5 @@
 def update_repository(repo_path, branch_name, commit_message, project_name, model_name):
+    import os
     from git import Repo
     from clearml import Task
 
@@ -8,7 +9,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         task_type=Task.TaskTypes.service,
     )
 
-    repo = Repo(repo_path)
+    repo = Repo(os.getcwd())
 
     # Check and switch to the specified branch, create if it doesn't exist
     if branch_name not in repo.heads:
@@ -46,8 +47,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Automate the process of committing and pushing changes.")
 
     # Add arguments
-    parser.add_argument("--repo_path", required=False, help="Path to the local Git repository")
-    parser.add_argument("--branch", required=False, default="", help="The branch to commit and push changes to")
+    parser.add_argument("--repo_path", required=False, default="", help="Path to the local Git repository")
+    parser.add_argument("--branch", required=False, default="Crop-33-Deploy-MLOPs-pipeline", help="The branch to commit and push changes to")
     parser.add_argument("--commit_message", required=False, default="Automated commit of model changes", help="Commit message")
     parser.add_argument("--project_name", required=False, default="CropSpot", help="Name of the ClearML project")
     parser.add_argument("--model_name", required=False, default="CropSpot_Model", help="ClearML trained model")

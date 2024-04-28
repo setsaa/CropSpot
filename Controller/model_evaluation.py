@@ -10,6 +10,9 @@ def evaluate_model(model_path, history_path, test_data_dir):
     from itertools import cycle
     from math import ceil
     import pickle as pkl
+    from clearml import Task
+
+    task = Task.init(project_name="CropSpot", task_name="Model Evaluation", task_type=Task.TaskTypes.testing)
 
     # Load the model
     model = load_model(model_path)
@@ -77,8 +80,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate the model")
 
     # Add arguments
-    parser.add_argument("--model_path", type=str, required=False, default="Model/CropSpot_Model.h5", help="Path to the trained model file")
-    parser.add_argument("--history_path", type=str, required=False, default="Model/CropSpot_Model_History.pkl", help="Path to the training history file")
+    parser.add_argument("--model_path", type=str, required=False, default="Trained Models/CropSpot_Model.h5", help="Path to the trained model file")
+    parser.add_argument("--history_path", type=str, required=False, default="Trained Models/CropSpot_Model_History.pkl", help="Path to the training history file")
     parser.add_argument("--test_data_dir", type=str, required=False, default="Dataset/Raw Data", help="Directory containing data")
 
     args = parser.parse_args()

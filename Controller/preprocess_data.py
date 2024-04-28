@@ -93,8 +93,8 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
 
 
 if __name__ == "__main__":
-    # import argparse
-    # import logging
+    import logging
+    import argparse
 
     # Set logging level to INFO
     logging.basicConfig(level=logging.INFO)
@@ -102,7 +102,6 @@ if __name__ == "__main__":
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
     parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
-    parser.add_argument("--local_dataset_dir", type=str, required=True, help="Path to the local dataset directory")
     parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
