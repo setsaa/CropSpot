@@ -125,34 +125,34 @@ def create_CropSpot_pipeline(
         cache_executed_step=False,
     )
 
-    # Step 5: Update Model in GitHub Repository
-    pipeline.add_function_step(
-        name="GitHub_Update",
-        task_name="Update Model Weights in GitHub Repository",
-        function=update_repository,
-        function_kwargs={
-            "repo_path": "${pipeline.repo_path}",
-            "branch_name": "${pipeline.branch}",
-            "commit_message": "${pipeline.commit_message}",
-            "project_name": "${pipeline.project_name}",
-            "model_name": "${pipeline.model_name}",
-        },
-        task_type=Task.TaskTypes.service,
-        parents=["Model_Training", "Model_Evaluation"],
-        project_name=project_name,
-        cache_executed_step=False,
-    )
+    # # Step 5: Update Model in GitHub Repository
+    # pipeline.add_function_step(
+    #     name="GitHub_Update",
+    #     task_name="Update Model Weights in GitHub Repository",
+    #     function=update_repository,
+    #     function_kwargs={
+    #         "repo_path": "${pipeline.repo_path}",
+    #         "branch_name": "${pipeline.branch}",
+    #         "commit_message": "${pipeline.commit_message}",
+    #         "project_name": "${pipeline.project_name}",
+    #         "model_name": "${pipeline.model_name}",
+    #     },
+    #     task_type=Task.TaskTypes.service,
+    #     parents=["Model_Training", "Model_Evaluation"],
+    #     project_name=project_name,
+    #     cache_executed_step=False,
+    # )
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start_locally(run_pipeline_steps_locally=True)
+    pipeline.start(queue=queue_name)
 
 
 if __name__ == "__main__":
     import argparse
 
     # Create the parser
-    parser = argparse.ArgumentParser(description="Run CropSpot Data Pipeline")
+    parser = argparse.ArgumentParser(description="Run CropSpot Pipeline")
 
     # Add arguments
     parser.add_argument(
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="default",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(
@@ -239,7 +239,14 @@ if __name__ == "__main__":
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
         pipeline_name=args.pipeline_name,
-        project_name=args.dataset_project,
+        project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
+        model_path=args.model_path,
+        model_history_path=args.model_history_path,
+        test_data_dir=args.test_data_dir,
+        repo_path=args.repo_path,
+        branch=args.branch,
+        commit_message=args.commit_message,
+        model_name=args.model_name,
     )
