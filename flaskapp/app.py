@@ -9,7 +9,6 @@ def sample():
     
     img = request.files["image"]
     
-    #TODO : implement predictions here
     prediction = "no disease"
     response = {"prediction": prediction}
     
