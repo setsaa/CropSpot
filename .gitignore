@@ -188,12 +188,15 @@ yarn-error.log*
 # ignore the "Dataset" folder
 Dataset/
 
-# ignore the trained models (temporarily)
-*.h5
-*.pkl
-
 # Other
 local_testing.ipynb
+*.zip
 
-# ignore the trained models (temporarily)
+temp_env/
+tmp_env/
+
+# Clearml
+clearml.conf
+
+# Model
 *.h5
