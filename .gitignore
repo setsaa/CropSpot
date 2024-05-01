@@ -197,3 +197,6 @@ tmp_env/
 
 # Clearml
 clearml.conf
+
+# Model
+*.h5
