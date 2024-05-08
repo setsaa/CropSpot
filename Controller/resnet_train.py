@@ -1,4 +1,4 @@
-def train_model(dataset_name, project_name, queue_name):
+def resnet_train(dataset_name, project_name, queue_name):
     """
     Train the CropSpot model using the preprocessed dataset.
 
@@ -25,8 +25,8 @@ def train_model(dataset_name, project_name, queue_name):
 
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
 
-    model_file_name = "CropSpot_Model.h5"
-    model_history_file_name = "CropSpot_Model_History.pkl"
+    model_file_name = "cropspot_resnet_model.h5"
+    model_history_file_name = "cropspot_resnet_model_History.pkl"
 
     # (Temp) Check if a trained model is already available
     trained_model_dir = "Trained Models"
@@ -93,10 +93,10 @@ def train_model(dataset_name, project_name, queue_name):
         predictions = Dense(num_classes, activation="softmax")(x)
 
         # Create model
-        cropspot_model = Model(inputs=base_resNet_model.input, outputs=predictions)
+        resnet_model = Model(inputs=base_resNet_model.input, outputs=predictions)
 
         # Compile model
-        cropspot_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+        resnet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
         # Manual logging within model.fit() callback
         logger = task.get_logger()
@@ -117,7 +117,7 @@ def train_model(dataset_name, project_name, queue_name):
         ]
 
         # Train the model
-        train_history = cropspot_model.fit(
+        train_history = resnet_model.fit(
             train_generator,
             epochs=epochs,
             validation_data=test_generator,
@@ -128,26 +128,26 @@ def train_model(dataset_name, project_name, queue_name):
         if not os.path.exists(trained_model_dir):
             os.makedirs(trained_model_dir)
 
-        model_file_name = "CropSpot_Model.h5"
-        cropspot_model.save(trained_model_dir + "/" + model_file_name)
+        model_file_name = "cropspot_resnet_model.h5"
+        resnet_model.save(trained_model_dir + "/" + model_file_name)
 
-        model_history_file_name = "CropSpot_Model_History.pkl"
+        model_history_file_name = "cropspot_resnet_model_History.pkl"
         with open(trained_model_dir + "/" + model_history_file_name, "wb") as file:
             pickle.dump(train_history.history, file)
     else:
         print("Trained model already available. Loading...")
 
         # Load the trained model
-        cropspot_model = load_model(trained_model_dir + "/CropSpot_Model.h5")
+        resnet_model = load_model(trained_model_dir + "/cropspot_resnet_model.h5")
 
         # Load the training history
-        with open(trained_model_dir + "/CropSpot_Model_History.pkl", "rb") as file:
+        with open(trained_model_dir + "/cropspot_resnet_model_History.pkl", "rb") as file:
             train_history = pickle.load(file)
 
-    output_model = OutputModel(task=task, name="CropSpot_Model", framework="Tensorflow")
+    output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
 
     # Upload the model weights to ClearML
-    output_model.update_weights("Trained Models\CropSpot_Model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
+    output_model.update_weights("Trained Models\cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
 
     # Make sure the model is accessible
     output_model.publish()
@@ -173,6 +173,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call the function with the parsed arguments
-    model_id = train_model(args.dataset_name, args.project_name, args.queue_name)
+    model_id = resnet_train(args.dataset_name, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")
