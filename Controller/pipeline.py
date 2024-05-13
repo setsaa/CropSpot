@@ -95,8 +95,8 @@ def create_CropSpot_pipeline(
 
     # Step 3(a): Train Model(s)
     pipeline.add_function_step(
-        name="ResNet Model_Training",
-        task_name="Train Model",
+        name="ResNet_Model_Training",
+        task_name="ResNet Train Model",
         function=resnet_train,
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
@@ -112,8 +112,8 @@ def create_CropSpot_pipeline(
 
     # Step 3(b): Train Model(s)
     pipeline.add_function_step(
-        name="DenseNet Model_Training",
-        task_name="Train Model",
+        name="DenseNet_Model_Training",
+        task_name="DenseNet Train Model",
         function=densenet_train,
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
@@ -129,8 +129,8 @@ def create_CropSpot_pipeline(
 
     # Step 3(c): Train Model(s)
     pipeline.add_function_step(
-        name="CNN Model_Training",
-        task_name="Train Model",
+        name="CNN_Model_Training",
+        task_name="CNN Train Model",
         function=custom_cnn_train,
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
@@ -157,7 +157,7 @@ def create_CropSpot_pipeline(
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
-        parents=["Model_Training"],
+        parents=["ResNet_Model_Training", "DenseNet_Model_Training", "CNN_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
     )
