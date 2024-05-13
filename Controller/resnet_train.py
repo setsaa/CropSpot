@@ -24,6 +24,7 @@ def resnet_train(dataset_name, project_name, queue_name):
     import pickle
 
     task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
+    task.execute_remotely(queue_name=queue_name)
 
     model_file_name = "cropspot_resnet_model.h5"
     model_history_file_name = "cropspot_resnet_model_History.pkl"

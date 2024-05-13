@@ -27,8 +27,6 @@ def create_CropSpot_pipeline(
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset
-
-    # from model_training import train_model
     from resnet_train import resnet_train
     from densenet_train import densenet_train
     from cnn_train import custom_cnn_train
@@ -155,6 +153,7 @@ def create_CropSpot_pipeline(
             "model_path": "${pipeline.model_path}",
             "history_path": "${pipeline.model_history_path}",
             "test_data_dir": "${pipeline.test_data_dir}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -183,8 +182,8 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    # pipeline.start(queue=queue_name)
-    pipeline.start_locally(run_pipeline_steps_locally=False)
+    pipeline.start(queue=queue_name)
+    # pipeline.start_locally(run_pipeline_steps_locally=False)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-def evaluate_model(model_path, history_path, test_data_dir):
+def evaluate_model(model_path, history_path, test_data_dir, queue_name):
     import numpy as np
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -13,6 +13,7 @@ def evaluate_model(model_path, history_path, test_data_dir):
     from clearml import Task
 
     task = Task.init(project_name="CropSpot", task_name="Model Evaluation", task_type=Task.TaskTypes.testing)
+    task.execute_remotely(queue_name=queue_name)
 
     # Load the model
     model = load_model(model_path)

@@ -23,6 +23,8 @@ def densenet_train(dataset_name, project_name, queue_name):
     from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="DenseNet Model Training", task_type=Task.TaskTypes.training)
+    task.execute_remotely(queue_name=queue_name)
+
     trained_model_dir = "Trained Models"
 
     dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
@@ -37,16 +39,7 @@ def densenet_train(dataset_name, project_name, queue_name):
 
     batch_size = 64
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
-        rotation_range=45,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        vertical_flip=True,
-        zoom_range=0.25,
-        shear_range=0.2,
-        brightness_range=[0.2, 1.0],
-        validation_split=0.2
+        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.2
     )
 
     train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
@@ -83,12 +76,7 @@ def densenet_train(dataset_name, project_name, queue_name):
         )
     ]
 
-    train_history = densenet_model.fit(
-        train_generator,
-        epochs=epochs,
-        validation_data=test_generator,
-        callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks]
-    )
+    train_history = densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
 
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
@@ -103,6 +91,7 @@ def densenet_train(dataset_name, project_name, queue_name):
     task.upload_artifact("Trained Model History", artifact_object="cropspot_densenet_model_History.pkl")
 
     return output_model.id
+
 
 if __name__ == "__main__":
     import argparse
