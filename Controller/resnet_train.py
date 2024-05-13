@@ -10,6 +10,12 @@ def resnet_train(dataset_name, project_name, queue_name):
     Returns:
         ID of the trained model
     """
+    from clearml import Task, Dataset, OutputModel
+
+    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
+    task.add_requirements("requirements.txt")
+    task.execute_remotely(queue_name=queue_name)
+
     import os
     import matplotlib.pyplot as plt
     from tensorflow.keras.models import Model, load_model
@@ -20,13 +26,7 @@ def resnet_train(dataset_name, project_name, queue_name):
     from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-    from clearml import Task, Dataset, OutputModel
     import pickle
-
-    task = Task.init(project_name=project_name, task_name="Model Training", task_type=Task.TaskTypes.training)
-    task.execute_remotely(queue_name=queue_name)
-
-    os.system("pip install -r requirements.txt")
 
     model_file_name = "cropspot_resnet_model.h5"
     model_history_file_name = "cropspot_resnet_model_History.pkl"

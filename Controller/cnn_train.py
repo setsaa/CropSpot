@@ -10,6 +10,12 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     Returns:
         ID of the trained model
     """
+    from clearml import Task, Dataset, OutputModel
+
+    task = Task.init(project_name=project_name, task_name="Custom CNN Model Training", task_type=Task.TaskTypes.training)
+    task.add_requirements("requirements.txt")
+    task.execute_remotely(queue_name=queue_name)
+
     import os
     import pickle
     import matplotlib.pyplot as plt
@@ -18,12 +24,6 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     from tensorflow.keras.optimizers import Adam
     from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from clearml import Task, Dataset, OutputModel
-
-    task = Task.init(project_name=project_name, task_name="Custom CNN Model Training", task_type=Task.TaskTypes.training)
-    task.execute_remotely(queue_name=queue_name)
-
-    os.system("pip install -r requirements.txt")
 
     trained_model_dir = "Trained Models"
 

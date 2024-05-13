@@ -1,4 +1,10 @@
 def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
+    from clearml import Task, Dataset, OutputModel
+
+    task = Task.init(project_name="CropSpot", task_name="Compare trained Models", task_type=Task.TaskTypes.training)
+    task.add_requirements("requirements.txt")
+    task.execute_remotely(queue_name=queue_name)
+
     import os
     import numpy as np
     import matplotlib.pyplot as plt
@@ -11,12 +17,6 @@ def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
     from itertools import cycle
     from math import ceil
     import pickle as pkl
-    from clearml import Task
-
-    task = Task.init(project_name="CropSpot", task_name="Model Evaluation", task_type=Task.TaskTypes.testing)
-    task.execute_remotely(queue_name=queue_name)
-
-    os.system("pip install -r requirements.txt")
 
     # Load the model
     model1 = load_model(model_path_1)
