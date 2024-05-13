@@ -27,7 +27,11 @@ def create_CropSpot_pipeline(
     from clearml import PipelineController, Task
     from upload_data import upload_dataset, download_dataset
     from preprocess_data import preprocess_dataset
-    from model_training import train_model
+
+    # from model_training import train_model
+    from resnet_train import resnet_train
+    from densenet_train import densenet_train
+    from cnn_train import custom_cnn_train
     from model_evaluation import evaluate_model
     from update_model import update_repository
 
@@ -91,18 +95,52 @@ def create_CropSpot_pipeline(
         cache_executed_step=False,
     )
 
-    # Step 3: Train Model
+    # Step 3(a): Train Model(s)
     pipeline.add_function_step(
-        name="Model_Training",
+        name="ResNet Model_Training",
         task_name="Train Model",
-        function=train_model,
+        function=resnet_train,
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
             queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
-        function_return=["model_id"],
+        function_return=["resnet_model_id"],
+        parents=["Data_Preprocessing"],
+        project_name=project_name,
+        cache_executed_step=False,
+    )
+
+    # Step 3(b): Train Model(s)
+    pipeline.add_function_step(
+        name="DenseNet Model_Training",
+        task_name="Train Model",
+        function=densenet_train,
+        function_kwargs=dict(
+            dataset_name="${pipeline.dataset_name}",
+            project_name="${pipeline.project_name}",
+            queue_name="${pipeline.queue_name}",
+        ),
+        task_type=Task.TaskTypes.training,
+        function_return=["densenet_model_id"],
+        parents=["Data_Preprocessing"],
+        project_name=project_name,
+        cache_executed_step=False,
+    )
+
+    # Step 3(c): Train Model(s)
+    pipeline.add_function_step(
+        name="CNN Model_Training",
+        task_name="Train Model",
+        function=custom_cnn_train,
+        function_kwargs=dict(
+            dataset_name="${pipeline.dataset_name}",
+            project_name="${pipeline.project_name}",
+            queue_name="${pipeline.queue_name}",
+        ),
+        task_type=Task.TaskTypes.training,
+        function_return=["cnn_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=False,
