@@ -1,5 +1,6 @@
 import argparse
 from pipeline import create_CropSpot_pipeline
+from clearml import Task
 
 if __name__ == "__main__":
     # Create the parser
@@ -86,6 +87,10 @@ if __name__ == "__main__":
 
     # Parse the arguments
     args = parser.parse_args()
+
+    task = Task.init(project_name=args.project_name, task_name=args.pipeline_name)
+    task.connect(args)
+    task.execute_remotely(queue_name=args.queue_name)
 
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
