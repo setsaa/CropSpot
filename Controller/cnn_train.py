@@ -12,9 +12,8 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     """
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.init(project_name=project_name, task_name="Custom CNN Model Training", task_type=Task.TaskTypes.training)
-    task.add_requirements("requirements.txt")
-    task.execute_remotely(queue_name=queue_name)
+    task = Task.create(project_name=project_name, task_name="Custom CNN Model Training", task_type=Task.TaskTypes.training, requirements_file="../requirements.txt")
+    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import pickle
