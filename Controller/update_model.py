@@ -1,4 +1,4 @@
-def update_repository(repo_path, branch_name, commit_message, project_name, model_name):
+def update_repository(repo_path, branch_name, commit_message, project_name, model_name, queue_name):
     import os
     from git import Repo
     from clearml import Task
@@ -8,6 +8,9 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         task_name="GitHub Repo Update",
         task_type=Task.TaskTypes.service,
     )
+    task.execute_remotely(queue_name=queue_name)
+
+    os.system("pip install -r requirements.txt")
 
     repo = Repo(os.getcwd())
 

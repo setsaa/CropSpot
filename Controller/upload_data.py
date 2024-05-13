@@ -82,6 +82,8 @@ def upload_dataset(project_name, dataset_name, queue_name):
     task = Task.init(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing)
     task.execute_remotely(queue_name=queue_name)
 
+    os.system("pip install -r requirements.txt")
+
     dataset_dir = "./"
 
     # Check if dataset already exists on ClearML

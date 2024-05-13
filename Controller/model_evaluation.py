@@ -1,4 +1,5 @@
 def evaluate_model(model_path, history_path, test_data_dir, queue_name):
+    import os
     import numpy as np
     import matplotlib.pyplot as plt
     import seaborn as sns
@@ -15,12 +16,10 @@ def evaluate_model(model_path, history_path, test_data_dir, queue_name):
     task = Task.init(project_name="CropSpot", task_name="Model Evaluation", task_type=Task.TaskTypes.testing)
     task.execute_remotely(queue_name=queue_name)
 
+    os.system("pip install -r requirements.txt")
+
     # Load the model
     model = load_model(model_path)
-
-    # Load history
-    with open(history_path, "rb") as file:
-        history = pkl.load(file)
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)

@@ -23,6 +23,8 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     task = Task.init(project_name=project_name, task_name="Custom CNN Model Training", task_type=Task.TaskTypes.training)
     task.execute_remotely(queue_name=queue_name)
 
+    os.system("pip install -r requirements.txt")
+
     trained_model_dir = "Trained Models"
 
     dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")

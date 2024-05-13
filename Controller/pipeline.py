@@ -3,8 +3,9 @@ def create_CropSpot_pipeline(
     project_name,
     dataset_name,
     queue_name,
-    model_path,
-    model_history_path,
+    model_path_1,
+    model_path_2,
+    model_path_3,
     test_data_dir,
     repo_path,
     branch,
@@ -31,6 +32,7 @@ def create_CropSpot_pipeline(
     from densenet_train import densenet_train
     from cnn_train import custom_cnn_train
     from model_evaluation import evaluate_model
+    from compare_models import compare_models
     from update_model import update_repository
 
     # Initialize a new pipeline controller task
@@ -47,8 +49,9 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
-    pipeline.add_parameter(name="model_path", default=model_path)
-    pipeline.add_parameter(name="model_history_path", default=model_history_path)
+    pipeline.add_parameter(name="model_path_1", default=model_path_1)
+    pipeline.add_parameter(name="model_path_2", default=model_path_2)
+    pipeline.add_parameter(name="model_path_3", default=model_path_3)
     pipeline.add_parameter(name="test_data_dir", default=test_data_dir)
     pipeline.add_parameter(name="repo_path", default=repo_path)
     pipeline.add_parameter(name="branch", default=branch)
@@ -144,20 +147,70 @@ def create_CropSpot_pipeline(
         cache_executed_step=False,
     )
 
-    # Step 4: Evaluate Model
+    # Step 4(a): Evaluate Model(s)
     pipeline.add_function_step(
-        name="Model_Evaluation",
-        task_name="Evaluate Model",
+        name="ResNet_Model_Evaluation",
+        task_name="ResNet Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_path}",
-            "history_path": "${pipeline.model_history_path}",
+            "model_path": "${pipeline.model_path_1}",
             "test_data_dir": "${pipeline.test_data_dir}",
             "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
-        parents=["ResNet_Model_Training", "DenseNet_Model_Training", "CNN_Model_Training"],
+        parents=["ResNet_Model_Training"],
+        project_name=project_name,
+        cache_executed_step=False,
+    )
+
+    # Step 4(b): Evaluate Model(s)
+    pipeline.add_function_step(
+        name="DenseNet_Model_Evaluation",
+        task_name="DenseNet Evaluate Model",
+        function=evaluate_model,
+        function_kwargs={
+            "model_path": "${pipeline.model_path_2}",
+            "test_data_dir": "${pipeline.test_data_dir}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.testing,
+        function_return=["f1_score"],
+        parents=["DenseNet_Model_Training"],
+        project_name=project_name,
+        cache_executed_step=False,
+    )
+
+    # Step 4(c): Evaluate Model(s)
+    pipeline.add_function_step(
+        name="CNN_Model_Evaluation",
+        task_name="CNN Evaluate Model",
+        function=evaluate_model,
+        function_kwargs={
+            "model_path": "${pipeline.model_path_3}",
+            "test_data_dir": "${pipeline.test_data_dir}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.testing,
+        function_return=["f1_score"],
+        parents=["CNN_Model_Training"],
+        project_name=project_name,
+        cache_executed_step=False,
+    )
+
+    # Step 5: Compare Model(s)
+    pipeline.add_function_step(
+        name="Model_Comparison",
+        task_name="Compare Models",
+        function=compare_models,
+        function_kwargs={
+            "model_path_1": "${pipeline.model_path_1}",
+            "model_path_2": "${pipeline.model_path_2}",
+            "model_path_3": "${pipeline.model_path_3}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.service,
+        parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
         project_name=project_name,
         cache_executed_step=False,
     )
@@ -173,6 +226,7 @@ def create_CropSpot_pipeline(
     #         "commit_message": "${pipeline.commit_message}",
     #         "project_name": "${pipeline.project_name}",
     #         "model_name": "${pipeline.model_name}",
+    #         "queue_name": "${pipeline.queue_name}",
     #     },
     #     task_type=Task.TaskTypes.service,
     #     parents=["Model_Training", "Model_Evaluation"],
@@ -222,18 +276,25 @@ if __name__ == "__main__":
         help="ClearML queue name",
     )
     parser.add_argument(
-        "--model_path",
+        "--model_path_1",
         type=str,
         required=False,
-        default="Trained Models/CropSpot_Model.h5",
+        default="Trained Models/cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_history_path",
+        "--model_path_2",
         type=str,
         required=False,
-        default="Trained Models/CropSpot_Model_History.pkl",
-        help="Local model history path",
+        default="Trained Models/cropspot_densenet_model.h5",
+        help="Local model path",
+    )
+    parser.add_argument(
+        "--model_path_3",
+        type=str,
+        required=False,
+        default="Trained Models/cropspot_CNN_model.h5",
+        help="Local model path",
     )
     parser.add_argument(
         "--test_data_dir",
@@ -281,7 +342,6 @@ if __name__ == "__main__":
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
         model_path=args.model_path,
-        model_history_path=args.model_history_path,
         test_data_dir=args.test_data_dir,
         repo_path=args.repo_path,
         branch=args.branch,
