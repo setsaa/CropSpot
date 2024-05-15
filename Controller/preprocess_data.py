@@ -12,11 +12,11 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     """
     from clearml import Dataset, Task
 
-    task = Task.create(
-        project_name=project_name,
-        task_name="Dataset Preprocessing",
-        task_type=Task.TaskTypes.data_processing,
-    )
+    # task = Task.create(
+    #     project_name=project_name,
+    #     task_name="Dataset Preprocessing",
+    #     task_type=Task.TaskTypes.data_processing,
+    # )
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
