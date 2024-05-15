@@ -19,7 +19,7 @@ def create_CropSpot_pipeline(
         pipeline_name (str): Name of the pipeline.
         project_name (str): Name of the ClearML project.
         dataset_name (str): Name of the dataset.
-        queue_name (str): Name of the queue to execute the pipeline.
+        queue_id (str): Name of the queue to execute the pipeline.
 
     Returns:
         None
@@ -43,6 +43,7 @@ def create_CropSpot_pipeline(
         add_pipeline_tags=True,
         target_project=project_name,
         auto_version_bump=True,
+        pool_frequency=5.0  # Poll every 5 minutes
     )
 
     # Add pipeline-level parameters with defaults from function arguments
@@ -77,7 +78,6 @@ def create_CropSpot_pipeline(
         parents=None,
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 2: Preprocess Data
@@ -95,7 +95,6 @@ def create_CropSpot_pipeline(
         parents=["Data_Upload"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 3(a): Train Model(s)
@@ -130,7 +129,6 @@ def create_CropSpot_pipeline(
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 3(c): Train Model(s)
@@ -148,7 +146,6 @@ def create_CropSpot_pipeline(
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 4(a): Evaluate Model(s)
@@ -166,7 +163,6 @@ def create_CropSpot_pipeline(
         parents=["ResNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 4(b): Evaluate Model(s)
@@ -184,7 +180,6 @@ def create_CropSpot_pipeline(
         parents=["DenseNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 4(c): Evaluate Model(s)
@@ -202,7 +197,6 @@ def create_CropSpot_pipeline(
         parents=["CNN_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # Step 5: Compare Model(s)
@@ -220,7 +214,6 @@ def create_CropSpot_pipeline(
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
         project_name=project_name,
         cache_executed_step=False,
-        execution_queue=queue_name,
     )
 
     # # Step 5: Update Model in GitHub Repository
@@ -240,7 +233,6 @@ def create_CropSpot_pipeline(
     #     parents=["Model_Training", "Model_Evaluation"],
     #     project_name=project_name,
     #     cache_executed_step=False,
-    #     execution_queue=queue_name,
     # )
 
     # Start the pipeline
@@ -281,7 +273,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver_2",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(
