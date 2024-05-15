@@ -1,12 +1,19 @@
 [tool.poetry]
 name = "cropspot"
-version = "0.1.0"
-description = ""
-authors = ["Farhan Nafis <farhan.m.nafis2412@gmail.com>"]
+version = "1.0.0"
+description = "CropSpot"
+authors = ["Helldiver"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+numpy = "^1.26.4"
+matplotlib = "^3.8.4"
+pandas = "^2.2.2"
+seaborn = "^0.13.2"
+tensorflow = {extras = ["with-cuda"], version = "^2.16.1"}
+clearml = "^1.15.1"
+clearml-agent = "^1.8.0"
 
 
 [build-system]
