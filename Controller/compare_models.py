@@ -6,7 +6,7 @@ def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
         task_name="Compare trained Models",
         task_type=Task.TaskTypes.training,
     )
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import numpy as np

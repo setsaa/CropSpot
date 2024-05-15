@@ -6,7 +6,7 @@ def evaluate_model(model_path, history_path, test_data_dir, queue_name):
         task_name="Evaluate Model",
         task_type=Task.TaskTypes.training,
     )
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import numpy as np

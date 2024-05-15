@@ -17,7 +17,7 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
         task_name="Dataset Preprocessing",
         task_type=Task.TaskTypes.data_processing,
     )
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import logging

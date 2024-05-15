@@ -17,7 +17,7 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
         task_name="Custom CNN Model Training",
         task_type=Task.TaskTypes.training,
     )
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import pickle

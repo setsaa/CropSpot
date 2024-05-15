@@ -51,7 +51,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
 
 
 # Create a ClearML pipeline for the CropSpot project.
-@PipelineDecorator.pipeline(name="CropSpot Data Pipeline", project="CropSpot", version="1.0")
+@PipelineDecorator.pipeline(name="CropSpot Data Pipeline", project="CropSpot", version="1.0", default_queue="helldiver")
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
