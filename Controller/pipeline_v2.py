@@ -86,31 +86,31 @@ def create_CropSpot_pipeline(
     model_name,
 ):
     # Step 1: Upload Data
-    upload_data_pipeline(project_name=project_name, dataset_name=dataset_name, queue_name=queue_name)
+    uploaded_dataset_id, uploaded_dataset_name = upload_data_pipeline(project_name=project_name, dataset_name=dataset_name, queue_name=queue_name)
 
     # Step 2: Preprocess Data
-    preprocess_data_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+    prep_dataset_id, prep_dataset_name = preprocess_data_pipeline(dataset_name=uploaded_dataset_name, project_name=project_name, queue_name=queue_name)
 
     # Step 3(a): Train ResNet Model
-    resnet_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+    resnet_id = resnet_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
 
     # Step 3(b): Train DenseNet Model
-    densenet_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+    densenet_id = densenet_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
 
     # Step 3(c): Train CNN Model
-    custom_cnn_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+    cnn_id = custom_cnn_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
 
     # Step 4(a): Evaluate ResNet Model
-    evaluate_model_pipeline(model_path=model_path_1, history_path="Trained Models/resnet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
+    resnet_f1 = evaluate_model_pipeline(model_path=resnet_id, history_path="Trained Models/resnet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
 
     # Step 4(b): Evaluate DenseNet Model
-    evaluate_model_pipeline(model_path=model_path_2, history_path="Trained Models/densenet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
+    densenet_f1 = evaluate_model_pipeline(model_path=densenet_id, history_path="Trained Models/densenet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
 
     # Step 4(c): Evaluate CNN Model
-    evaluate_model_pipeline(model_path=model_path_3, history_path="Trained Models/cnn_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
+    cnn_f1 = evaluate_model_pipeline(model_path=cnn_id, history_path="Trained Models/cnn_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
 
     # Step 5: Compare Models
-    compare_models(model_path_1=model_path_1, model_path_2=model_path_2, model_path_3=model_path_3, test_data_dir=test_data_dir, queue_name=queue_name)
+    best_id = compare_models(model_path_1=resnet_id, model_path_2=densenet_id, model_path_3=cnn_id, test_data_dir=test_data_dir, queue_name=queue_name)
 
     # # Step 5: Update Model in GitHub Repository
     # update_model_pipeline(repo_path=repo_path, branch=branch, commit_message=commit_message, project_name=project_name, model_name=model_name)
