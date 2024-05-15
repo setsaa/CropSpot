@@ -245,7 +245,7 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue="helldiver")
+    pipeline.start(queue="helldiver_2")
     # pipeline.start_locally(run_pipeline_steps_locally=False)
 
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="helldiver_2",
         help="ClearML queue name",
     )
     parser.add_argument(
