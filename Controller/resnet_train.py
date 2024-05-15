@@ -119,7 +119,7 @@ def resnet_train(dataset_name, project_name, queue_name):
         ]
 
         # Train the model
-        train_history = resnet_model.fit(
+        resnet_model.fit(
             train_generator,
             epochs=epochs,
             validation_data=test_generator,
@@ -133,18 +133,11 @@ def resnet_train(dataset_name, project_name, queue_name):
         model_file_name = "cropspot_resnet_model.h5"
         resnet_model.save(trained_model_dir + "/" + model_file_name)
 
-        model_history_file_name = "cropspot_resnet_model_History.pkl"
-        with open(trained_model_dir + "/" + model_history_file_name, "wb") as file:
-            pickle.dump(train_history.history, file)
     else:
         print("Trained model already available. Loading...")
 
         # Load the trained model
         resnet_model = load_model(trained_model_dir + "/cropspot_resnet_model.h5")
-
-        # Load the training history
-        with open(trained_model_dir + "/cropspot_resnet_model_History.pkl", "rb") as file:
-            train_history = pickle.load(file)
 
     output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
 
@@ -155,7 +148,6 @@ def resnet_train(dataset_name, project_name, queue_name):
     output_model.publish()
 
     task.upload_artifact("Trained Model", artifact_object=model_file_name)
-    task.upload_artifact("Trained Model History", artifact_object=model_history_file_name)
 
     return output_model.id
 

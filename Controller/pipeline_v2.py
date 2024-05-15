@@ -1,3 +1,57 @@
+from clearml import PipelineDecorator, Task
+from upload_data import upload_dataset, download_dataset
+from preprocess_data import preprocess_dataset
+from resnet_train import resnet_train
+from densenet_train import densenet_train
+from cnn_train import custom_cnn_train
+from model_evaluation import evaluate_model
+from update_model import update_repository
+
+
+# Step 1: Upload Data
+@PipelineDecorator.component(return_values=["dataset_id", "dataset_name"], cache=False, task_type=Task.TaskTypes.data_processing)
+def upload_data_pipeline(project_name, dataset_name, queue_name):
+    return upload_dataset(project_name=project_name, dataset_name=dataset_name, queue_name=queue_name)
+
+
+# Step 2: Preprocess Data
+@PipelineDecorator.component(return_values=["preprocessed_dataset_id", "preprocessed_dataset_name"], cache=False, task_type=Task.TaskTypes.data_processing)
+def preprocess_data_pipeline(dataset_name, project_name, queue_name):
+    return preprocess_dataset(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+
+
+# Step 3(a): Train ResNet Model
+@PipelineDecorator.component(return_values=["resnet_model_id"], cache=False, task_type=Task.TaskTypes.training)
+def resnet_train_pipeline(dataset_name, project_name, queue_name):
+    return resnet_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+
+
+# Step 3(b): Train DenseNet Model
+@PipelineDecorator.component(return_values=["densenet_model_id"], cache=False, task_type=Task.TaskTypes.training)
+def densenet_train_pipeline(dataset_name, project_name, queue_name):
+    return densenet_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+
+
+# Step 3(c): Train CNN Model
+@PipelineDecorator.component(return_values=["custom_cnn_model_id"], cache=False, task_type=Task.TaskTypes.training)
+def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
+    return custom_cnn_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+
+
+# Step 4: Evaluate Model
+@PipelineDecorator.component(return_values=["f1_score"], cache=False, task_type=Task.TaskTypes.testing)
+def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
+    return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
+
+
+# # Step 5: Update Model in GitHub Repository
+# @PipelineDecorator(name="Update Model in GitHub Repository", project_name="CropSpot", task_name="Update Model in GitHub Repository", task_type=PipelineDecorator.TaskTypes.training)
+# def update_model_pipeline(repo_path, branch, commit_message, project_name, model_name):
+#     return update_repository(repo_path=repo_path, branch_name=branch, commit_message=commit_message, project_name=project_name, model_name=model_name)
+
+
+# Create a ClearML pipeline for the CropSpot project.
+@PipelineDecorator.pipeline(name="CropSpot Data Pipeline", project="CropSpot", version="1.0")
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
@@ -11,195 +65,29 @@ def create_CropSpot_pipeline(
     commit_message,
     model_name,
 ):
-    """
-    Create a ClearML pipeline for the CropSpot project.
-
-    Parameters:
-        pipeline_name (str): Name of the pipeline.
-        project_name (str): Name of the ClearML project.
-        dataset_name (str): Name of the dataset.
-        queue_name (str): Name of the queue to execute the pipeline.
-
-    Returns:
-        None
-    """
-
-    from clearml import PipelineController, Task
-    from upload_data import upload_dataset, download_dataset
-    from preprocess_data import preprocess_dataset
-    from resnet_train import resnet_train
-    from densenet_train import densenet_train
-    from cnn_train import custom_cnn_train
-    from model_evaluation import evaluate_model
-    from update_model import update_repository
-
-    # Initialize ClearML Task
-    task = Task.init(project_name="CropSpot", task_name="CropSpot_Pipeline", task_type=Task.TaskTypes.controller)
-
-    # Initialize a new pipeline controller task
-    pipeline = PipelineController(
-        name=pipeline_name,
-        project=project_name,
-        version="1.0",
-        add_pipeline_tags=True,
-        target_project=project_name,
-        auto_version_bump=True,
-    )
-
-    # Add pipeline-level parameters with defaults from function arguments
-    pipeline.add_parameter(name="project_name", default=project_name)
-    pipeline.add_parameter(name="dataset_name", default=dataset_name)
-    pipeline.add_parameter(name="queue_name", default=queue_name)
-    pipeline.add_parameter(name="model_path", default=model_path)
-    pipeline.add_parameter(name="model_history_path", default=model_history_path)
-    pipeline.add_parameter(name="test_data_dir", default=test_data_dir)
-    pipeline.add_parameter(name="repo_path", default=repo_path)
-    pipeline.add_parameter(name="branch", default=branch)
-    pipeline.add_parameter(name="commit_message", default=commit_message)
-    pipeline.add_parameter(name="model_name", default=model_name)
-
-    # Set the default execution queue
-    pipeline.set_default_execution_queue(queue_name)
-
     # Step 1: Upload Data
-    task1 = task.create_function_task(
-        project_name=project_name,
-        task_name="Upload Raw Data",
-        queue_name=queue_name,
-        func=upload_dataset,
-        params={"project_name": project_name, "dataset_name": dataset_name, "queue_name": queue_name},
-    )
-    pipeline.add_step(
-        name="Data_Upload",
-        base_task_id=task1.id,
-        parents=None,
-    )
+    upload_data_pipeline(project_name=project_name, dataset_name=dataset_name, queue_name=queue_name)
 
-    # pipeline.add_function_step(
-    #     name="Data_Upload",
-    #     task_name="Upload Raw Data",
-    #     function=upload_dataset,
-    #     function_kwargs=dict(
-    #         project_name="${pipeline.project_name}",
-    #         dataset_name="${pipeline.dataset_name}",
-    #         queue_name="${pipeline.queue_name}",
-    #     ),
-    #     task_type=Task.TaskTypes.data_processing,
-    #     function_return=["raw_dataset_id", "raw_dataset_name"],
-    #     helper_functions=[download_dataset],
-    #     parents=None,
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 2: Preprocess Data
+    preprocess_data_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
-    # # Step 2: Preprocess Data
-    # pipeline.add_function_step(
-    #     name="Data_Preprocessing",
-    #     task_name="Preprocess Uploaded Data",
-    #     function=preprocess_dataset,
-    #     function_kwargs=dict(
-    #         dataset_name="${pipeline.dataset_name}",
-    #         project_name="${pipeline.project_name}",
-    #         queue_name="${pipeline.queue_name}",
-    #     ),
-    #     task_type=Task.TaskTypes.data_processing,
-    #     function_return=["processed_dataset_id", "processed_dataset_name"],
-    #     parents=["Data_Upload"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 3(a): Train ResNet Model
+    resnet_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
-    # # Step 3(a): Train Model(s)
-    # pipeline.add_function_step(
-    #     name="ResNet_Model_Training",
-    #     task_name="ResNet Train Model",
-    #     function=resnet_train,
-    #     function_kwargs=dict(
-    #         dataset_name="${pipeline.dataset_name}",
-    #         project_name="${pipeline.project_name}",
-    #         queue_name="${pipeline.queue_name}",
-    #     ),
-    #     task_type=Task.TaskTypes.training,
-    #     function_return=["resnet_model_id"],
-    #     parents=["Data_Preprocessing"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 3(b): Train DenseNet Model
+    densenet_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
-    # # Step 3(b): Train Model(s)
-    # pipeline.add_function_step(
-    #     name="DenseNet_Model_Training",
-    #     task_name="DenseNet Train Model",
-    #     function=densenet_train,
-    #     function_kwargs=dict(
-    #         dataset_name="${pipeline.dataset_name}",
-    #         project_name="${pipeline.project_name}",
-    #         queue_name="${pipeline.queue_name}",
-    #     ),
-    #     task_type=Task.TaskTypes.training,
-    #     function_return=["densenet_model_id"],
-    #     parents=["Data_Preprocessing"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 3(c): Train CNN Model
+    custom_cnn_train_pipeline(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
-    # # Step 3(c): Train Model(s)
-    # pipeline.add_function_step(
-    #     name="CNN_Model_Training",
-    #     task_name="CNN Train Model",
-    #     function=custom_cnn_train,
-    #     function_kwargs=dict(
-    #         dataset_name="${pipeline.dataset_name}",
-    #         project_name="${pipeline.project_name}",
-    #         queue_name="${pipeline.queue_name}",
-    #     ),
-    #     task_type=Task.TaskTypes.training,
-    #     function_return=["cnn_model_id"],
-    #     parents=["Data_Preprocessing"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 4: Evaluate Model
+    evaluate_model_pipeline(model_path=model_path, history_path=model_history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
-    # # Step 4: Evaluate Model
-    # pipeline.add_function_step(
-    #     name="Model_Evaluation",
-    #     task_name="Evaluate Model",
-    #     function=evaluate_model,
-    #     function_kwargs={
-    #         "model_path": "${pipeline.model_path}",
-    #         "history_path": "${pipeline.model_history_path}",
-    #         "test_data_dir": "${pipeline.test_data_dir}",
-    #         "queue_name": "${pipeline.queue_name}",
-    #     },
-    #     task_type=Task.TaskTypes.testing,
-    #     function_return=["f1_score"],
-    #     parents=["ResNet_Model_Training", "DenseNet_Model_Training", "CNN_Model_Training"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # # Step 5: Update Model in GitHub Repository
+    # update_model_pipeline(repo_path=repo_path, branch=branch, commit_message=commit_message, project_name=project_name, model_name=model_name)
 
-    # # # Step 5: Update Model in GitHub Repository
-    # # pipeline.add_function_step(
-    # #     name="GitHub_Update",
-    # #     task_name="Update Model Weights in GitHub Repository",
-    # #     function=update_repository,
-    # #     function_kwargs={
-    # #         "repo_path": "${pipeline.repo_path}",
-    # #         "branch_name": "${pipeline.branch}",
-    # #         "commit_message": "${pipeline.commit_message}",
-    # #         "project_name": "${pipeline.project_name}",
-    # #         "model_name": "${pipeline.model_name}",
-    # #     },
-    # #     task_type=Task.TaskTypes.service,
-    # #     parents=["Model_Training", "Model_Evaluation"],
-    # #     project_name=project_name,
-    # #     cache_executed_step=False,
-    # # )
-
-    # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue=queue_name)
-    # pipeline.start_locally(run_pipeline_steps_locally=False)
+    return
 
 
 if __name__ == "__main__":
@@ -238,18 +126,25 @@ if __name__ == "__main__":
         help="ClearML queue name",
     )
     parser.add_argument(
-        "--model_path",
+        "--model_path_1",
         type=str,
         required=False,
-        default="Trained Models/CropSpot_Model.h5",
+        default="Trained Models/cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_history_path",
+        "--model_path_2",
         type=str,
         required=False,
-        default="Trained Models/CropSpot_Model_History.pkl",
-        help="Local model history path",
+        default="Trained Models/cropspot_densenet_model.h5",
+        help="Local model path",
+    )
+    parser.add_argument(
+        "--model_path_3",
+        type=str,
+        required=False,
+        default="Trained Models/cropspot_CNN_model.h5",
+        help="Local model path",
     )
     parser.add_argument(
         "--test_data_dir",
@@ -290,6 +185,8 @@ if __name__ == "__main__":
     # Parse the arguments
     args = parser.parse_args()
 
+    PipelineDecorator.set_default_execution_queue(args.queue_name)
+
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
         pipeline_name=args.pipeline_name,
@@ -297,10 +194,11 @@ if __name__ == "__main__":
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
         model_path=args.model_path,
-        model_history_path=args.model_history_path,
         test_data_dir=args.test_data_dir,
         repo_path=args.repo_path,
         branch=args.branch,
         commit_message=args.commit_message,
         model_name=args.model_name,
     )
+
+    PipelineDecorator.start(queue=args.queue_name)
