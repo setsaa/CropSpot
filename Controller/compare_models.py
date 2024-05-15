@@ -1,7 +1,11 @@
 def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.create(project_name="CropSpot", task_name="Compare trained Models", task_type=Task.TaskTypes.training, requirements_file="../requirements.txt")
+    task = Task.create(
+        project_name="CropSpot",
+        task_name="Compare trained Models",
+        task_type=Task.TaskTypes.training,
+    )
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os

@@ -59,7 +59,7 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name", default=model_name)
 
     # Set the default execution queue
-    pipeline.set_default_execution_queue("helldiver")
+    pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Data
     pipeline.add_function_step(
@@ -236,7 +236,7 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue="helldiver")
+    pipeline.start(queue=queue_name)
     # pipeline.start_locally(run_pipeline_steps_locally=False)
 
 
@@ -272,7 +272,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver_2",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(

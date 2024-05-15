@@ -38,7 +38,7 @@ def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
     return custom_cnn_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
-# Step 4: Evaluate Model
+# Step 4poe: Evaluate Model
 @PipelineDecorator.component(return_values=["f1_score"], cache=False, task_type=Task.TaskTypes.testing)
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
     return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)

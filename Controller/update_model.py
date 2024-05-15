@@ -5,7 +5,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         project_name=project_name,
         task_name="GitHub Repo Update",
         task_type=Task.TaskTypes.service,
-        requirements_file="../requirements.txt",
+        ,
     )
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 

@@ -77,7 +77,11 @@ def upload_dataset(project_name, dataset_name, queue_name):
     from clearml import Task, Dataset
 
     # Create a ClearML task
-    task = Task.create(project_name=project_name, task_name="Dataset Upload", task_type=Task.TaskTypes.data_processing, requirements_file="../requirements.txt")
+    task = Task.create(
+        project_name=project_name,
+        task_name="Dataset Upload",
+        task_type=Task.TaskTypes.data_processing,
+    )
     task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
