@@ -2,7 +2,7 @@ def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
     dataset_name,
-    queue_id,
+    queue_name,
     model_path_1,
     model_path_2,
     model_path_3,
@@ -49,7 +49,7 @@ def create_CropSpot_pipeline(
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
-    pipeline.add_parameter(name="queue_id", default=queue_id)
+    pipeline.add_parameter(name="queue_name", default=queue_name)
     pipeline.add_parameter(name="model_path_1", default=model_path_1)
     pipeline.add_parameter(name="model_path_2", default=model_path_2)
     pipeline.add_parameter(name="model_path_3", default=model_path_3)
@@ -60,7 +60,7 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name", default=model_name)
 
     # Set the default execution queue
-    pipeline.set_default_execution_queue(queue_id)
+    pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Data
     pipeline.add_function_step(
@@ -70,7 +70,7 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             project_name="${pipeline.project_name}",
             dataset_name="${pipeline.dataset_name}",
-            queue_id="${pipeline.queue_id}",
+            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["raw_dataset_id", "raw_dataset_name"],
@@ -88,7 +88,7 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_id="${pipeline.queue_id}",
+            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["processed_dataset_id", "processed_dataset_name"],
@@ -105,7 +105,7 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_id="${pipeline.queue_id}",
+            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["resnet_model_id"],
@@ -122,7 +122,7 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_id="${pipeline.queue_id}",
+            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["densenet_model_id"],
@@ -139,7 +139,7 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_id="${pipeline.queue_id}",
+            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["cnn_model_id"],
@@ -156,7 +156,7 @@ def create_CropSpot_pipeline(
         function_kwargs={
             "model_path": "${pipeline.model_path_1}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_id": "${pipeline.queue_id}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -173,7 +173,7 @@ def create_CropSpot_pipeline(
         function_kwargs={
             "model_path": "${pipeline.model_path_2}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_id": "${pipeline.queue_id}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -190,7 +190,7 @@ def create_CropSpot_pipeline(
         function_kwargs={
             "model_path": "${pipeline.model_path_3}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_id": "${pipeline.queue_id}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -208,7 +208,7 @@ def create_CropSpot_pipeline(
             "model_path_1": "${pipeline.model_path_1}",
             "model_path_2": "${pipeline.model_path_2}",
             "model_path_3": "${pipeline.model_path_3}",
-            "queue_id": "${pipeline.queue_id}",
+            "queue_name": "${pipeline.queue_name}",
         },
         task_type=Task.TaskTypes.service,
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
@@ -227,7 +227,7 @@ def create_CropSpot_pipeline(
     #         "commit_message": "${pipeline.commit_message}",
     #         "project_name": "${pipeline.project_name}",
     #         "model_name": "${pipeline.model_name}",
-    #         "queue_id": "${pipeline.queue_id}",
+    #         "queue_name": "${pipeline.queue_name}",
     #     },
     #     task_type=Task.TaskTypes.service,
     #     parents=["Model_Training", "Model_Evaluation"],
@@ -237,5 +237,5 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue=queue_id)
+    pipeline.start(queue=queue_name)
     # pipeline.start_locally(run_pipeline_steps_locally=False)

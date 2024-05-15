@@ -32,7 +32,7 @@ if __name__ == "__main__":
         help="Name for the raw dataset",
     )
     parser.add_argument(
-        "--queue_id",
+        "--queue_name",
         type=str,
         required=False,
         default="default",
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         pipeline_name=args.pipeline_name,
         project_name=args.project_name,
         dataset_name=args.dataset_name,
-        queue_id=args.queue_id,
+        queue_name=args.queue_name,
         model_path_1=args.model_path_1,
         model_path_2=args.model_path_2,
         model_path_3=args.model_path_3,
