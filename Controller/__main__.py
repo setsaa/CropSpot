@@ -3,9 +3,6 @@ from pipeline import create_CropSpot_pipeline
 from clearml import Task
 
 if __name__ == "__main__":
-    import argparse
-    from pipeline import create_CropSpot_pipeline
-    from clearml import Task
     # Create the parser
     parser = argparse.ArgumentParser(description="Run CropSpot Pipeline")
 
@@ -35,7 +32,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="default",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(
