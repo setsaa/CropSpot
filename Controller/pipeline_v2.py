@@ -70,7 +70,7 @@ def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queu
 
 
 # Create a ClearML pipeline for the CropSpot project.
-@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="helldiver")
+@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="helldiver_2")
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="helldiver_2",
         help="ClearML queue name",
     )
     parser.add_argument(

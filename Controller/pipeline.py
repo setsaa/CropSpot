@@ -59,7 +59,7 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name", default=model_name)
 
     # Set the default execution queue
-    pipeline.set_default_execution_queue("helldiver")
+    pipeline.set_default_execution_queue(queue_name)
 
     # Step 1: Upload Data
     pipeline.add_function_step(
