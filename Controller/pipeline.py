@@ -36,15 +36,7 @@ def create_CropSpot_pipeline(
     from update_model import update_repository
 
     # Initialize a new pipeline controller task
-    pipeline = PipelineController(
-        name=pipeline_name,
-        project=project_name,
-        version="1.0",
-        add_pipeline_tags=True,
-        target_project=project_name,
-        auto_version_bump=True,
-        pool_frequency=5.0  # Poll every 5 minutes
-    )
+    pipeline = PipelineController(name=pipeline_name, project=project_name, version="1.0", add_pipeline_tags=True, target_project=project_name, auto_version_bump=True, pool_frequency=5.0)  # Poll every 5 minutes
 
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
@@ -237,7 +229,7 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue="helldiver_2")
+    pipeline.start(queue_name)
     # pipeline.start_locally(run_pipeline_steps_locally=False)
 
 
@@ -273,7 +265,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver_2",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(
