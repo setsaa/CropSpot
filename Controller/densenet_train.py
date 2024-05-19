@@ -19,18 +19,20 @@ def densenet_train(dataset_name, project_name, queue_name):
     import os
     import pickle
     import matplotlib.pyplot as plt
-    from tensorflow.keras.models import Model, load_model
-    from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from tensorflow.keras.optimizers import Adam
-    from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
-    from tensorflow.keras.applications import DenseNet121
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    from keras.models import Model, load_model
+    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from keras.optimizers import Adam
+    from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
+    from keras.applications import DenseNet121
+    from keras.preprocessing.image import ImageDataGenerator
 
     trained_model_dir = "Trained Models"
 
     dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
     dataset_path = "Dataset/Preprocessed"
-    dataset.get_mutable_local_copy(dataset_path)
+
+    if not os.path.exists(dataset_path):
+        dataset.get_mutable_local_copy(dataset_path)
 
     first_category = os.listdir(dataset_path)[0]
     first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
@@ -77,19 +79,17 @@ def densenet_train(dataset_name, project_name, queue_name):
         )
     ]
 
-    train_history = densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
+    densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
 
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
     densenet_model.save(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"))
-    with open(os.path.join(trained_model_dir, "cropspot_densenet_model_History.pkl"), "wb") as file:
-        pickle.dump(train_history.history, file)
 
     output_model = OutputModel(task=task, name="cropspot_densenet_model", framework="Tensorflow")
-    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"))
+    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
     output_model.publish()
-    task.upload_artifact("Trained Model", artifact_object="cropspot_densenet_model.h5")
-    task.upload_artifact("Trained Model History", artifact_object="cropspot_densenet_model_History.pkl")
+
+    task.upload_artifact("DenseNet Model", artifact_object="cropspot_densenet_model.h5")
 
     return output_model.id
 

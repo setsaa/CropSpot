@@ -13,8 +13,8 @@ def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
     import matplotlib.pyplot as plt
     import seaborn as sns
     import tensorflow as tf
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from tensorflow.keras.models import Model, load_model
+    from keras.preprocessing.image import ImageDataGenerator
+    from keras.models import Model, load_model
     from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
     from sklearn.preprocessing import label_binarize
     from itertools import cycle

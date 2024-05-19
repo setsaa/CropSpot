@@ -25,8 +25,8 @@ if __name__ == "__main__":
         "--dataset_name",
         type=str,
         required=False,
-        default="TomatoDiseaseDataset",
-        help="Name for the raw dataset",
+        default="TomatoDiseaseDatasetV2",
+        help="Name for the original dataset",
     )
     parser.add_argument(
         "--queue_name",

@@ -87,7 +87,7 @@ def upload_dataset(project_name, dataset_name, queue_name):
     import os
     import shutil
 
-    dataset_dir = "./"
+    dataset_dir = "./Dataset/TomatoDiseaseDatasetV2"
 
     # Check if dataset already exists on ClearML
     existing_dataset = Dataset.get(dataset_name=dataset_name)
@@ -96,17 +96,17 @@ def upload_dataset(project_name, dataset_name, queue_name):
 
         return existing_dataset.id, existing_dataset.name
 
-    # Download the dataset
-    download_dataset(dataset_dir, dataset_name)
+    # # Download the dataset
+    # download_dataset(dataset_dir, dataset_name)
 
-    # Create a directory with the dataset name if it doesn't exist
-    dataset_path = os.path.join(dataset_dir, dataset_name)
+    # # Create a directory with the dataset name if it doesn't exist
+    # dataset_path = os.path.join(dataset_dir, dataset_name)
 
     # Create a ClearML dataset
     dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
 
     # Add the dataset directory to the dataset
-    dataset.add_files(dataset_path)
+    dataset.add_files(dataset_dir)
 
     # Upload the dataset to ClearML
     dataset.upload()
@@ -114,8 +114,8 @@ def upload_dataset(project_name, dataset_name, queue_name):
     # Finalize the dataset
     dataset.finalize()
 
-    # Remove the dataset directory
-    shutil.rmtree(dataset_path)
+    # # Remove the dataset directory
+    # shutil.rmtree(dataset_dir)
 
     print(f"Dataset uploaded with ID: {dataset.id} and name: {dataset.name}")
 

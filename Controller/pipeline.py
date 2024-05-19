@@ -36,7 +36,7 @@ def create_CropSpot_pipeline(
     from update_model import update_repository
 
     # Initialize a new pipeline controller task
-    pipeline = PipelineController(name=pipeline_name, project=project_name, version="1.0", add_pipeline_tags=True, target_project=project_name, auto_version_bump=True, pool_frequency=5.0)  # Poll every 5 minutes
+    pipeline = PipelineController(name=pipeline_name, project=project_name, version="1.0", add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)
 
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
@@ -52,7 +52,7 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name", default=model_name)
 
     # Set the default execution queue
-    pipeline.set_default_execution_queue(queue_name)
+    pipeline.set_default_execution_queue("default")
 
     # Step 1: Upload Data
     pipeline.add_function_step(
@@ -229,8 +229,8 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue_name)
-    # pipeline.start_locally(run_pipeline_steps_locally=False)
+    # pipeline.start(queue_name)
+    pipeline.start_locally(run_pipeline_steps_locally=True)
 
 
 if __name__ == "__main__":
