@@ -60,8 +60,8 @@ def create_CropSpot_pipeline(
         task_name="Upload Raw Data",
         function=upload_dataset,
         function_kwargs=dict(
-            project_name="${pipeline.project_name}",
             dataset_name="${pipeline.dataset_name}",
+            project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["raw_dataset_id", "raw_dataset_name"],
@@ -78,7 +78,7 @@ def create_CropSpot_pipeline(
         task_name="Preprocess Uploaded Data",
         function=preprocess_dataset,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Upload.raw_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
@@ -95,7 +95,7 @@ def create_CropSpot_pipeline(
         task_name="ResNet Train Model",
         function=resnet_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
@@ -112,7 +112,7 @@ def create_CropSpot_pipeline(
         task_name="DenseNet Train Model",
         function=densenet_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
@@ -129,7 +129,7 @@ def create_CropSpot_pipeline(
         task_name="CNN Train Model",
         function=custom_cnn_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,

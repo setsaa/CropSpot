@@ -26,16 +26,16 @@ def densenet_train(dataset_name, project_name):
     from keras.applications.densenet import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
-    # TEMP
-    model_file_name = "cropspot_densenet_model.h5"
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    existing_model.connect(task=task)
-    if existing_model:
-        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-        return existing_model.id
+    # # TEMP
+    # model_file_name = "cropspot_densenet_model.h5"
+    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # existing_model.connect(task=task)
+    # if existing_model:
+    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    #     return existing_model.id
 
     # Load preprocessed dataset
-    prep_dataset_name = dataset_name + "_preprocessed"
+    prep_dataset_name = dataset_name
     dataset = Dataset.get(dataset_name=prep_dataset_name)
 
     # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.

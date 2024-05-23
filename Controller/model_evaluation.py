@@ -17,11 +17,9 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     import pickle as pkl
 
     # Load the model
-    model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
-    model.connect(task=task)
-
-    local_model = model.get_local_copy()
-    print(f"Model '{model_name}' downloaded to '{local_model}'")
+    input_model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
+    input_model.connect(task=task)
+    local_model = input_model.get_local_copy()
     model = load_model(local_model)
 
     dataset = Dataset.get(dataset_name=test_dataset)
