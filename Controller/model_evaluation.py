@@ -1,4 +1,4 @@
-def evaluate_model(model_name, test_data_dir, task_name):
+def evaluate_model(model_name, test_data_dir, task_name, project_name):
     from clearml import Task, Dataset, OutputModel, InputModel
 
     task = Task.init(project_name="CropSpot", task_name=task_name)
@@ -17,7 +17,7 @@ def evaluate_model(model_name, test_data_dir, task_name):
     import pickle as pkl
 
     # Load the model
-    model = InputModel(name=model_name).connect()
+    model = InputModel(name=model_name[:-3], project=project_name, only_published=True).connect()
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)

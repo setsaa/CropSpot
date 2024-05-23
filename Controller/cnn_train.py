@@ -10,7 +10,7 @@ def custom_cnn_train(dataset_name, project_name):
     Returns:
         ID of the trained model
     """
-    from clearml import Task, Dataset, OutputModel
+    from clearml import Task, Dataset, OutputModel, InputModel
 
     task = Task.init(project_name=project_name, task_name="CNN Train Model")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
@@ -23,6 +23,13 @@ def custom_cnn_train(dataset_name, project_name):
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
+
+    # TEMP
+    model_file_name = "cropspot_CNN_model.h5"
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True).connect()
+    if existing_model:
+        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+        return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name + "_preprocessed"

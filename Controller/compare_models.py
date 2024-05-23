@@ -1,4 +1,4 @@
-def compare_models(model_name_1, model_name_2, model_name_3, queue_name):
+def compare_models(model_name_1, model_score_1, model_name_2, model_score_2, model_name_3, model_score_3, project_name):
     from clearml import Task, Dataset, OutputModel, InputModel
 
     task = Task.init(project_name="CropSpot", task_name="Compare Models")
@@ -17,24 +17,18 @@ def compare_models(model_name_1, model_name_2, model_name_3, queue_name):
     from math import ceil
     import pickle as pkl
 
-    # Load the model
-    model1 = InputModel(name=model_name_1).connect()
-    model2 = InputModel(name=model_name_2).connect()
-    model3 = InputModel(name=model_name_3).connect()
+    # Find best models based on the F1 score
+    best_model = None
+    best_score = 0
+    for model_name, model_score in zip([model_name_1, model_name_2, model_name_3], [model_score_1, model_score_2, model_score_3]):
+        if model_score > best_score:
+            best_model = model_name
+            best_score = model_score
 
-    # Load score from clearml
-    model_1_score = model1.get_metric("val_accuracy")
-    model_2_score = model2.get_metric("val_accuracy")
-    model_3_score = model3.get_metric("val_accuracy")
+    # Load the best model
+    model = InputModel(name=best_model[:-3], project=project_name, only_published=True).connect()
 
-    # Get best model
-    best_model = max(model_1_score, model_2_score, model_3_score)
-
-    # Return the id of best model based on f1 score
-    model = [model_1_score, model_2_score, model_3_score]
-    best_model = model.index(max(model))
-
-    return best_model.id
+    return model.id
 
 
 if __name__ == "__main__":
