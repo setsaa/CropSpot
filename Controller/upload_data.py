@@ -1,3 +1,64 @@
+def upload_dataset(project_name, dataset_name, queue_name):
+    """
+    Upload dataset to a ClearML project.
+
+    Parameters:
+        project_name (str): Name of the ClearML project.
+        dataset_name (str): Name of the dataset.
+        queue_name (str): Name of the queue to execute the task.
+
+    Returns:
+        dataset_id (str): ID of the uploaded dataset.
+        dataset_name (str): Name of the uploaded dataset.
+    """
+    from clearml import Task, Dataset
+
+    # Create a ClearML task
+    task = Task.create(
+        project_name=project_name,
+        task_name="Dataset Upload",
+        task_type=Task.TaskTypes.data_processing,
+    )
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
+
+    import os
+    import shutil
+
+    dataset_dir = "./Dataset/TomatoDiseaseDatasetV2"
+
+    # Check if dataset already exists on ClearML
+    existing_dataset = Dataset.get(dataset_name=dataset_name)
+    if existing_dataset:
+        print(f"Dataset '{dataset_name}' already exists in project '{project_name}'.")
+
+        return existing_dataset.id, existing_dataset.name
+
+    # # Download the dataset
+    # download_dataset(dataset_dir, dataset_name)
+
+    # # Create a directory with the dataset name if it doesn't exist
+    # dataset_path = os.path.join(dataset_dir, dataset_name)
+
+    # Create a ClearML dataset
+    dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
+
+    # Add the dataset directory to the dataset
+    dataset.add_files(dataset_dir)
+
+    # Upload the dataset to ClearML
+    dataset.upload()
+
+    # Finalize the dataset
+    dataset.finalize()
+
+    # # Remove the dataset directory
+    # shutil.rmtree(dataset_dir)
+
+    print(f"Dataset uploaded with ID: {dataset.id} and name: {dataset.name}")
+
+    return dataset.id, dataset.name
+
+
 def download_dataset(dataset_dir, dataset_name):
     """
     Download and extract dataset from URL.
@@ -59,67 +120,6 @@ def download_dataset(dataset_dir, dataset_name):
 
     else:
         raise ValueError(f"Failed to download the dataset. HTTP response code: {response.status_code}")
-
-
-def upload_dataset(project_name, dataset_name, queue_name):
-    """
-    Upload dataset to a ClearML project.
-
-    Parameters:
-        project_name (str): Name of the ClearML project.
-        dataset_name (str): Name of the dataset.
-        queue_name (str): Name of the queue to execute the task.
-
-    Returns:
-        dataset_id (str): ID of the uploaded dataset.
-        dataset_name (str): Name of the uploaded dataset.
-    """
-    from clearml import Task, Dataset
-
-    # Create a ClearML task
-    task = Task.create(
-        project_name=project_name,
-        task_name="Dataset Upload",
-        task_type=Task.TaskTypes.data_processing,
-    )
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
-
-    import os
-    import shutil
-
-    dataset_dir = "./Dataset/TomatoDiseaseDatasetV2"
-
-    # Check if dataset already exists on ClearML
-    existing_dataset = Dataset.get(dataset_name=dataset_name)
-    if existing_dataset:
-        print(f"Dataset '{dataset_name}' already exists in project '{project_name}'.")
-
-        return existing_dataset.id, existing_dataset.name
-
-    # # Download the dataset
-    # download_dataset(dataset_dir, dataset_name)
-
-    # # Create a directory with the dataset name if it doesn't exist
-    # dataset_path = os.path.join(dataset_dir, dataset_name)
-
-    # Create a ClearML dataset
-    dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
-
-    # Add the dataset directory to the dataset
-    dataset.add_files(dataset_dir)
-
-    # Upload the dataset to ClearML
-    dataset.upload()
-
-    # Finalize the dataset
-    dataset.finalize()
-
-    # # Remove the dataset directory
-    # shutil.rmtree(dataset_dir)
-
-    print(f"Dataset uploaded with ID: {dataset.id} and name: {dataset.name}")
-
-    return dataset.id, dataset.name
 
 
 if __name__ == "__main__":

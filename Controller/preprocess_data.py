@@ -11,7 +11,6 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
         ID and name of the processed dataset.
     """
     from clearml import Dataset, Task
-    from upload_data import upload_dataset
 
     task = Task.create(
         project_name=project_name,
@@ -34,6 +33,10 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     preprocessed_dir = Path(f"Dataset/{dataset_name}_preprocessed")
     if preprocessed_dir.exists():
         print("Dataset already exists")
+
+        # TEMP CHANGE
+        prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+        return prep_dataset.id, prep_dataset.name
 
         # Remove the old preprocessed directory
         print("Removing the old preprocessed directory...")

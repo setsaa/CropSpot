@@ -28,11 +28,9 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
 
-    trained_model_dir = "Trained Models"
-
     dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
-    dataset_path = "Dataset/Preprocessed"
 
+    dataset_path = f"Dataset/{dataset_name + "_preprocessed"}"
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
@@ -43,8 +41,19 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     img_size = min(img_height, img_width)
 
     batch_size = 64
+    
+    # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255, rotation_range=45, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True, vertical_flip=True, zoom_range=0.25, shear_range=0.2, brightness_range=[0.2, 1.0], validation_split=0.2
+        rescale=1.0 / 255,
+        rotation_range=45,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True,
+        zoom_range=0.25,
+        shear_range=0.2,
+        brightness_range=[0.2, 1.0],
+        validation_split=0.2,
     )
 
     train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
@@ -85,6 +94,7 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
 
     cnn_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
 
+    trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
 

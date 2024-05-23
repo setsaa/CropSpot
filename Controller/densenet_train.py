@@ -17,7 +17,6 @@ def densenet_train(dataset_name, project_name, queue_name):
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
-    import pickle
     import matplotlib.pyplot as plt
     from keras.models import Model, load_model
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
@@ -26,11 +25,9 @@ def densenet_train(dataset_name, project_name, queue_name):
     from keras.applications import DenseNet121
     from keras.preprocessing.image import ImageDataGenerator
 
-    trained_model_dir = "Trained Models"
-
     dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
-    dataset_path = "Dataset/Preprocessed"
 
+    dataset_path = f"Dataset/{dataset_name + "_preprocessed"}"
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
@@ -81,6 +78,7 @@ def densenet_train(dataset_name, project_name, queue_name):
 
     densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
 
+    trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
     densenet_model.save(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"))
