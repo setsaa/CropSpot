@@ -52,11 +52,11 @@ def resnet_train(dataset_name, project_name):
     img_size = 224
 
     # Set batch size
-    batch_size = 16
+    batch_size = 32
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=preprocess_input,
+        preprocessing_function=preprocess_input,
         validation_split=0.2,
     )
 

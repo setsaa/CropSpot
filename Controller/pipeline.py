@@ -70,7 +70,7 @@ def create_CropSpot_pipeline(
         helper_functions=[download_dataset],
         parents=None,
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -87,7 +87,7 @@ def create_CropSpot_pipeline(
         function_return=["processed_dataset_id", "processed_dataset_name"],
         parents=["Data_Upload"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -104,7 +104,7 @@ def create_CropSpot_pipeline(
         function_return=["resnet_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -121,7 +121,7 @@ def create_CropSpot_pipeline(
         function_return=["densenet_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -138,7 +138,7 @@ def create_CropSpot_pipeline(
         function_return=["cnn_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -157,7 +157,7 @@ def create_CropSpot_pipeline(
         function_return=["test_accuracy"],
         parents=["ResNet_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -176,7 +176,7 @@ def create_CropSpot_pipeline(
         function_return=["test_accuracy"],
         parents=["DenseNet_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -195,7 +195,7 @@ def create_CropSpot_pipeline(
         function_return=["test_accuracy"],
         parents=["CNN_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 
@@ -217,7 +217,7 @@ def create_CropSpot_pipeline(
         function_return=["best_model_id"],
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
         project_name=project_name,
-        cache_executed_step=True,
+        cache_executed_step=False,
         packages=packages,
     )
 

@@ -37,7 +37,7 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     # img_size = min(img_height, img_width)
     img_size = 224
 
-    batch_size = 16
+    batch_size = 32
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)

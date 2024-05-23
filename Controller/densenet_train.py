@@ -51,10 +51,10 @@ def densenet_train(dataset_name, project_name):
     # img_size = min(img_height, img_width)
     img_size = 224
 
-    batch_size = 16
+    batch_size = 32
 
     datagen = ImageDataGenerator(
-        rescale=preprocess_input,
+        preprocessing_function=preprocess_input,
         validation_split=0.2,
     )
 
