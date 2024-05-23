@@ -3,9 +3,9 @@ def create_CropSpot_pipeline(
     project_name,
     dataset_name,
     queue_name,
-    model_path_1,
-    model_path_2,
-    model_path_3,
+    model_name_1,
+    model_name_2,
+    model_name_3,
     test_data_dir,
     repo_path,
     branch,
@@ -42,9 +42,9 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="project_name", default=project_name)
     pipeline.add_parameter(name="dataset_name", default=dataset_name)
     pipeline.add_parameter(name="queue_name", default=queue_name)
-    pipeline.add_parameter(name="model_path_1", default=model_path_1)
-    pipeline.add_parameter(name="model_path_2", default=model_path_2)
-    pipeline.add_parameter(name="model_path_3", default=model_path_3)
+    pipeline.add_parameter(name="model_name_1", default=model_name_1)
+    pipeline.add_parameter(name="model_name_2", default=model_name_2)
+    pipeline.add_parameter(name="model_name_3", default=model_name_3)
     pipeline.add_parameter(name="test_data_dir", default=test_data_dir)
     pipeline.add_parameter(name="repo_path", default=repo_path)
     pipeline.add_parameter(name="branch", default=branch)
@@ -62,7 +62,6 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             project_name="${pipeline.project_name}",
             dataset_name="${pipeline.dataset_name}",
-            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["raw_dataset_id", "raw_dataset_name"],
@@ -81,7 +80,6 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["processed_dataset_id", "processed_dataset_name"],
@@ -99,7 +97,6 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["resnet_model_id"],
@@ -117,7 +114,6 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["densenet_model_id"],
@@ -135,7 +131,6 @@ def create_CropSpot_pipeline(
         function_kwargs=dict(
             dataset_name="${pipeline.dataset_name}",
             project_name="${pipeline.project_name}",
-            queue_name="${pipeline.queue_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["cnn_model_id"],
@@ -151,9 +146,9 @@ def create_CropSpot_pipeline(
         task_name="ResNet Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_path_1}",
+            "model_path": "${pipeline.model_name_1}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_name": "${pipeline.queue_name}",
+            "task_name": "ResNet Evaluate Model",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -169,9 +164,9 @@ def create_CropSpot_pipeline(
         task_name="DenseNet Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_path_2}",
+            "model_path": "${pipeline.model_name_2}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_name": "${pipeline.queue_name}",
+            "task_name": "ResNet Evaluate Model",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -187,9 +182,9 @@ def create_CropSpot_pipeline(
         task_name="CNN Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_path_3}",
+            "model_path": "${pipeline.model_name_3}",
             "test_data_dir": "${pipeline.test_data_dir}",
-            "queue_name": "${pipeline.queue_name}",
+            "task_name": "ResNet Evaluate Model",
         },
         task_type=Task.TaskTypes.testing,
         function_return=["f1_score"],
@@ -205,10 +200,9 @@ def create_CropSpot_pipeline(
         task_name="Compare Models",
         function=compare_models,
         function_kwargs={
-            "model_path_1": "${pipeline.model_path_1}",
-            "model_path_2": "${pipeline.model_path_2}",
-            "model_path_3": "${pipeline.model_path_3}",
-            "queue_name": "${pipeline.queue_name}",
+            "model_name_1": "${pipeline.model_name_1}",
+            "model_name_2": "${pipeline.model_name_2}",
+            "model_name_3": "${pipeline.model_name_3}",
         },
         task_type=Task.TaskTypes.service,
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
@@ -267,35 +261,35 @@ if __name__ == "__main__":
         "--dataset_name",
         type=str,
         required=False,
-        default="TomatoDiseaseDataset",
-        help="Name for the raw dataset",
+        default="TomatoDiseaseDatasetV2",
+        help="Name for the original dataset",
     )
     parser.add_argument(
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="helldiver_2",
         help="ClearML queue name",
     )
     parser.add_argument(
-        "--model_path_1",
+        "--model_name_1",
         type=str,
         required=False,
-        default="Trained Models/cropspot_resnet_model.h5",
+        default="cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_2",
+        "--model_name_2",
         type=str,
         required=False,
-        default="Trained Models/cropspot_densenet_model.h5",
+        default="cropspot_densenet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_3",
+        "--model_name_3",
         type=str,
         required=False,
-        default="Trained Models/cropspot_CNN_model.h5",
+        default="cropspot_CNN_model.h5",
         help="Local model path",
     )
     parser.add_argument(

@@ -1,4 +1,4 @@
-def resnet_train(dataset_name, project_name, queue_name):
+def resnet_train(dataset_name, project_name):
     """
     Train the CropSpot model using the preprocessed dataset.
 
@@ -12,7 +12,7 @@ def resnet_train(dataset_name, project_name, queue_name):
     """
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.create(project_name=project_name, task_name="ResNet Model Training", task_type=Task.TaskTypes.training)
+    task = Task.init(project_name=project_name, task_name="ResNet Train Model")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os

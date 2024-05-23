@@ -43,21 +43,21 @@ if __name__ == "__main__":
         "--model_path_1",
         type=str,
         required=False,
-        default="Trained Models/cropspot_resnet_model.h5",
+        default="cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
         "--model_path_2",
         type=str,
         required=False,
-        default="Trained Models/cropspot_densenet_model.h5",
+        default="cropspot_densenet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
         "--model_path_3",
         type=str,
         required=False,
-        default="Trained Models/cropspot_CNN_model.h5",
+        default="cropspot_CNN_model.h5",
         help="Local model path",
     )
     parser.add_argument(
@@ -105,9 +105,9 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
-        model_path_1=args.model_path_1,
-        model_path_2=args.model_path_2,
-        model_path_3=args.model_path_3,
+        model_name_1=args.model_path_1,
+        model_name_2=args.model_path_2,
+        model_name_3=args.model_path_3,
         test_data_dir=args.test_data_dir,
         repo_path=args.repo_path,
         branch=args.branch,

@@ -1,11 +1,7 @@
-def evaluate_model(model_path, history_path, test_data_dir, queue_name):
+def evaluate_model(model_path, test_data_dir, task_name):
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.create(
-        project_name="CropSpot",
-        task_name="Evaluate Model",
-        task_type=Task.TaskTypes.training,
-    )
+    task = Task.init(project_name="CropSpot", task_name=task_name)
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os

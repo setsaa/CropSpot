@@ -1,4 +1,4 @@
-def densenet_train(dataset_name, project_name, queue_name):
+def densenet_train(dataset_name, project_name):
     """
     Train the model using DenseNet architecture with preprocessed dataset.
 
@@ -13,7 +13,7 @@ def densenet_train(dataset_name, project_name, queue_name):
 
     from clearml import Task, Dataset, OutputModel
 
-    task = Task.create(project_name=project_name, task_name="DenseNet Model Training", task_type=Task.TaskTypes.training)
+    task = Task.init(project_name=project_name, task_name="DenseNet Train Model")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
@@ -59,7 +59,9 @@ def densenet_train(dataset_name, project_name, queue_name):
 
     epochs = 200
     num_classes = len(train_generator.class_indices)
-    optimizer = Adam(learning_rate=0.001)
+    optimizer = Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999)
+    early_stopping = EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True)
+    learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001)
 
     base_densenet_model = DenseNet121(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
     for layer in base_densenet_model.layers:
@@ -88,7 +90,7 @@ def densenet_train(dataset_name, project_name, queue_name):
         )
     ]
 
-    densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[ReduceLROnPlateau(), EarlyStopping(), clearml_log_callbacks])
+    densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks])
 
     trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):

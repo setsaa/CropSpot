@@ -1,11 +1,7 @@
-def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
-    from clearml import Task, Dataset, OutputModel
+def compare_models(model_name_1, model_name_2, model_name_3, queue_name):
+    from clearml import Task, Dataset, OutputModel, InputModel
 
-    task = Task.create(
-        project_name="CropSpot",
-        task_name="Compare trained Models",
-        task_type=Task.TaskTypes.training,
-    )
+    task = Task.init(project_name="CropSpot", task_name="Compare Models")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
@@ -22,14 +18,14 @@ def compare_models(model_path_1, model_path_2, model_path_3, queue_name):
     import pickle as pkl
 
     # Load the model
-    model1 = load_model(model_path_1)
-    model2 = load_model(model_path_2)
-    model3 = load_model(model_path_3)
+    model1 = InputModel(name=model_name_1).connect()
+    model2 = InputModel(name=model_name_2).connect()
+    model3 = InputModel(name=model_name_3).connect()
 
     # Load score from clearml
-    model_1_score = model1.get_metric("f1")
-    model_2_score = model2.get_metric("f1")
-    model_3_score = model3.get_metric("f1")
+    model_1_score = model1.get_metric("val_accuracy")
+    model_2_score = model2.get_metric("val_accuracy")
+    model_3_score = model3.get_metric("val_accuracy")
 
     # Get best model
     best_model = max(model_1_score, model_2_score, model_3_score)
