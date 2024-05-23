@@ -20,6 +20,10 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
     model.connect(task=task)
 
+    local_model = model.get_local_copy()
+    print(f"Model '{model_name}' downloaded to '{local_model}'")
+    model = load_model(local_model)
+
     dataset = Dataset.get(dataset_name=test_dataset)
 
     # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
