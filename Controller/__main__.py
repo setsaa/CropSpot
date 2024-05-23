@@ -1,5 +1,7 @@
 import argparse
-from pipeline import create_CropSpot_pipeline
+from pipeline_v2 import create_CropSpot_pipeline
+
+# from pipeline import create_CropSpot_pipeline
 from clearml import Task
 
 if __name__ == "__main__":
