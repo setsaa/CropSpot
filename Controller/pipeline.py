@@ -6,7 +6,7 @@ def create_CropSpot_pipeline(
     model_name_1,
     model_name_2,
     model_name_3,
-    test_data_dir,
+    test_dataset,
     repo_path,
     branch,
     commit_message,
@@ -45,7 +45,7 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name_1", default=model_name_1)
     pipeline.add_parameter(name="model_name_2", default=model_name_2)
     pipeline.add_parameter(name="model_name_3", default=model_name_3)
-    pipeline.add_parameter(name="test_data_dir", default=test_data_dir)
+    pipeline.add_parameter(name="test_dataset", default=test_dataset)
     pipeline.add_parameter(name="repo_path", default=repo_path)
     pipeline.add_parameter(name="branch", default=branch)
     pipeline.add_parameter(name="commit_message", default=commit_message)
@@ -117,7 +117,7 @@ def create_CropSpot_pipeline(
         ),
         task_type=Task.TaskTypes.training,
         function_return=["densenet_model_id"],
-        parents=["Data_Preprocessing", "ResNet_Model_Training"],
+        parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=True,
         packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
@@ -134,7 +134,7 @@ def create_CropSpot_pipeline(
         ),
         task_type=Task.TaskTypes.training,
         function_return=["cnn_model_id"],
-        parents=["Data_Preprocessing", "DenseNet_Model_Training"],
+        parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=True,
         packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
@@ -147,7 +147,7 @@ def create_CropSpot_pipeline(
         function=evaluate_model,
         function_kwargs=dict(
             model_name="${pipeline.model_name_1}",
-            test_data_dir="${pipeline.test_data_dir}",
+            test_dataset="${pipeline.test_dataset}",
             project_name="${pipeline.project_name}",
             task_name="ResNet Evaluate Model",
         ),
@@ -166,7 +166,7 @@ def create_CropSpot_pipeline(
         function=evaluate_model,
         function_kwargs=dict(
             model_name="${pipeline.model_name_2}",
-            test_data_dir="${pipeline.test_data_dir}",
+            test_dataset="${pipeline.test_dataset}",
             project_name="${pipeline.project_name}",
             task_name="ResNet Evaluate Model",
         ),
@@ -185,7 +185,7 @@ def create_CropSpot_pipeline(
         function=evaluate_model,
         function_kwargs=dict(
             model_name="${pipeline.model_name_3}",
-            test_data_dir="${pipeline.test_data_dir}",
+            test_dataset="${pipeline.test_dataset}",
             project_name="${pipeline.project_name}",
             task_name="ResNet Evaluate Model",
         ),
@@ -212,6 +212,7 @@ def create_CropSpot_pipeline(
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.service,
+        function_return=["best_model_id"],
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
         project_name=project_name,
         cache_executed_step=True,
@@ -300,7 +301,7 @@ if __name__ == "__main__":
         help="Local model path",
     )
     parser.add_argument(
-        "--test_data_dir",
+        "--test_dataset",
         type=str,
         required=False,
         default="Dataset/Preprocessed",
@@ -344,7 +345,7 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
-        test_data_dir=args.test_data_dir,
+        test_dataset=args.test_dataset,
         repo_path=args.repo_path,
         branch=args.branch,
         commit_message=args.commit_message,

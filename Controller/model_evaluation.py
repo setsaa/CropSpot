@@ -1,4 +1,4 @@
-def evaluate_model(model_name, test_data_dir, task_name, project_name):
+def evaluate_model(model_name, test_dataset, task_name, project_name):
     from clearml import Task, Dataset, OutputModel, InputModel
 
     task = Task.init(project_name="CropSpot", task_name=task_name)
@@ -20,9 +20,16 @@ def evaluate_model(model_name, test_data_dir, task_name, project_name):
     model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
     model.connect(task=task)
 
+    dataset = Dataset.get(dataset_name=test_dataset)
+
+    # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
+    dataset_path = f"Dataset/{test_dataset}"
+    if not os.path.exists(dataset_path):
+        dataset.get_mutable_local_copy(dataset_path)
+
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
-    test_generator = test_datagen.flow_from_directory(test_data_dir, target_size=(224, 224), batch_size=16, class_mode="categorical", shuffle=True)
+    test_generator = test_datagen.flow_from_directory(dataset_path, target_size=(224, 224), batch_size=16, class_mode="categorical", shuffle=True)
 
     # Calculate the correct number of steps per epoch
     steps = ceil(test_generator.samples / test_generator.batch_size)
@@ -81,9 +88,9 @@ if __name__ == "__main__":
     # Add arguments
     parser.add_argument("--model_path", type=str, required=False, default="Trained Models/CropSpot_Model.h5", help="Path to the trained model file")
     parser.add_argument("--history_path", type=str, required=False, default="Trained Models/CropSpot_Model_History.pkl", help="Path to the training history file")
-    parser.add_argument("--test_data_dir", type=str, required=False, default="Dataset/Raw Data", help="Directory containing data")
+    parser.add_argument("--test_dataset", type=str, required=False, default="Dataset/Raw Data", help="Directory containing data")
 
     args = parser.parse_args()
 
     # Evaluate the model
-    evaluate_model(args.model_path, args.history_path, args.test_data_dir)
+    evaluate_model(args.model_path, args.history_path, args.test_dataset)

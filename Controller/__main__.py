@@ -61,7 +61,7 @@ if __name__ == "__main__":
         help="Local model path",
     )
     parser.add_argument(
-        "--test_data_dir",
+        "--test_dataset",
         type=str,
         required=False,
         default="TomatoDiseaseDatasetV2_preprocessed",
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         model_name_1=args.model_path_1,
         model_name_2=args.model_path_2,
         model_name_3=args.model_path_3,
-        test_data_dir=args.test_data_dir,
+        test_dataset=args.test_dataset,
         repo_path=args.repo_path,
         branch=args.branch,
         commit_message=args.commit_message,
