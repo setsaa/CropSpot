@@ -90,7 +90,7 @@ def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
-    return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
+    return evaluate_model(model_name=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 4(b): Evaluate DenseNet Model
@@ -104,7 +104,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
-    return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
+    return evaluate_model(model_name=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 4(c): Evaluate CNN Model
@@ -118,7 +118,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
-    return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
+    return evaluate_model(model_name=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 5: Compare Models

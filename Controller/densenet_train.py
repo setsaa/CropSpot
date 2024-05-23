@@ -23,6 +23,7 @@ def densenet_train(dataset_name, project_name):
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.applications import DenseNet121
+    from keras.applications.densenet import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
     # Load preprocessed dataset
@@ -34,23 +35,16 @@ def densenet_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    first_category = os.listdir(dataset_path)[0]
-    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    img_height, img_width, _ = img.shape
-    img_size = min(img_height, img_width)
+    # # Get image size from the first image from the healthy directory
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
+    img_size = 224
 
     batch_size = 64
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
-        # rotation_range=45,
-        # width_shift_range=0.2,
-        # height_shift_range=0.2,
-        # horizontal_flip=True,
-        # vertical_flip=True,
-        # zoom_range=0.25,
-        # shear_range=0.2,
-        # brightness_range=[0.2, 1.0],
+        rescale=preprocess_input,
         validation_split=0.2,
     )
 
@@ -112,7 +106,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a DenseNet model with ClearML on the preprocessed dataset")
     parser.add_argument("--dataset_name", type=str, required=False, default="YourDatasetName", help="Name of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=False, default="YourProjectName", help="Name of the ClearML project")
-    parser.add_argument("--queue_name", type=str, required=False, default="YourQueueName", help="Name of the ClearML queue for remote execution")
 
     args = parser.parse_args()
 

@@ -34,12 +34,6 @@ def upload_dataset(project_name, dataset_name):
 
         return existing_dataset.id, existing_dataset.name
 
-    # # Download the dataset
-    # download_dataset(dataset_dir, dataset_name)
-
-    # # Create a directory with the dataset name if it doesn't exist
-    # dataset_path = os.path.join(dataset_dir, dataset_name)
-
     # Create a ClearML dataset
     dataset = Dataset.create(dataset_name=dataset_name, dataset_project=project_name)
 

@@ -33,25 +33,18 @@ def custom_cnn_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    first_category = os.listdir(dataset_path)[0]
-    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    img_height, img_width, _ = img.shape
-    img_size = min(img_height, img_width)
+    # # Get image size from the first image from the healthy directory
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
+    img_size = 224
 
     batch_size = 64
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
-        # rotation_range=45,
-        # width_shift_range=0.2,
-        # height_shift_range=0.2,
-        # horizontal_flip=True,
-        # vertical_flip=True,
-        # zoom_range=0.25,
-        # shear_range=0.2,
-        # brightness_range=[0.2, 1.0],
         validation_split=0.2,
     )
 

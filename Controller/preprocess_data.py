@@ -22,6 +22,12 @@ def preprocess_dataset(dataset_name, project_name):
     from PIL import Image
     from pathlib import Path
 
+    # TEMP CHANGE
+    prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+    if prep_dataset:
+        print(f"Preprocessed dataset '{dataset_name}_preprocessed' already exists in project '{project_name}'.")
+        return prep_dataset.id, prep_dataset.name
+
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=dataset_name)
 
@@ -29,10 +35,6 @@ def preprocess_dataset(dataset_name, project_name):
     preprocessed_dir = Path(f"Dataset/{dataset_name}_preprocessed")
     if preprocessed_dir.exists():
         print("Dataset already exists")
-
-        # TEMP CHANGE
-        prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
-        return prep_dataset.id, prep_dataset.name
 
         # Remove the old preprocessed directory
         print("Removing the old preprocessed directory...")

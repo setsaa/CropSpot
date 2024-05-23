@@ -36,7 +36,7 @@ def create_CropSpot_pipeline(
     from update_model import update_repository
 
     # Initialize a new pipeline controller task
-    pipeline = PipelineController(name=pipeline_name, project=project_name, version="1.0", add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)
+    pipeline = PipelineController(name=pipeline_name, project=project_name, add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)
 
     # Add pipeline-level parameters with defaults from function arguments
     pipeline.add_parameter(name="project_name", default=project_name)
@@ -146,7 +146,7 @@ def create_CropSpot_pipeline(
         task_name="ResNet Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_name_1}",
+            "model_name": "${pipeline.model_name_1}",
             "test_data_dir": "${pipeline.test_data_dir}",
             "task_name": "ResNet Evaluate Model",
         },
@@ -164,7 +164,7 @@ def create_CropSpot_pipeline(
         task_name="DenseNet Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_name_2}",
+            "model_name": "${pipeline.model_name_2}",
             "test_data_dir": "${pipeline.test_data_dir}",
             "task_name": "ResNet Evaluate Model",
         },
@@ -182,7 +182,7 @@ def create_CropSpot_pipeline(
         task_name="CNN Evaluate Model",
         function=evaluate_model,
         function_kwargs={
-            "model_path": "${pipeline.model_name_3}",
+            "model_name": "${pipeline.model_name_3}",
             "test_data_dir": "${pipeline.test_data_dir}",
             "task_name": "ResNet Evaluate Model",
         },
@@ -337,7 +337,7 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
-        model_path=args.model_path,
+        model_name=args.model_name,
         test_data_dir=args.test_data_dir,
         repo_path=args.repo_path,
         branch=args.branch,

@@ -25,10 +25,9 @@ def resnet_train(dataset_name, project_name):
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-    import pickle
+    from kerastuner import HyperModel
 
     model_file_name = "cropspot_resnet_model.h5"
-    model_history_file_name = "cropspot_resnet_model_History.pkl"
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name + "_preprocessed"
@@ -42,26 +41,19 @@ def resnet_train(dataset_name, project_name):
     # Get first category
     first_category = os.listdir(dataset_path)[0]
 
-    # Get image size from the first image from the healthy directory
-    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    img_height, img_width, _ = img.shape
-    img_size = min(img_height, img_width)
+    # # Get image size from the first image from the healthy directory
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
+    img_size = 224
 
     # Set batch size
     batch_size = 64
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
-        # rotation_range=45,
-        # width_shift_range=0.2,
-        # height_shift_range=0.2,
-        # horizontal_flip=True,
-        # vertical_flip=True,
-        # zoom_range=0.25,
-        # shear_range=0.2,
-        # brightness_range=[0.2, 1.0],
+        rescale=preprocess_input,
         validation_split=0.2,
     )
 
