@@ -44,13 +44,15 @@ def densenet_train(dataset_name, project_name):
         dataset.get_mutable_local_copy(dataset_path)
 
     # # Get image size from the first image from the healthy directory
+    # first_category = os.listdir(dataset_path)[0]
     # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
     # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
     # img_height, img_width, _ = img.shape
     # img_size = min(img_height, img_width)
     img_size = 224
 
-    batch_size = 64
+    batch_size = 16
+
     datagen = ImageDataGenerator(
         rescale=preprocess_input,
         validation_split=0.2,
@@ -92,7 +94,14 @@ def densenet_train(dataset_name, project_name):
         )
     ]
 
-    densenet_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks])
+    densenet_model.fit(
+        train_generator,
+        # steps_per_epoch=train_generator.samples // batch_size,
+        epochs=epochs,
+        validation_data=test_generator,
+        # validation_steps=test_generator.samples // batch_size,
+        callbacks=[clearml_log_callbacks, early_stopping],
+    )
 
     trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):

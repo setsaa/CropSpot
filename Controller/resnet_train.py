@@ -26,9 +26,8 @@ def resnet_train(dataset_name, project_name):
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-    model_file_name = "cropspot_resnet_model.h5"
-
     # # TEMP
+    # model_file_name = "cropspot_resnet_model.h5"
     # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
     # existing_model.connect(task=task)
     # if existing_model:
@@ -44,9 +43,8 @@ def resnet_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # Get first category
-    # first_category = os.listdir(dataset_path)[0]
     # # Get image size from the first image from the healthy directory
+    # first_category = os.listdir(dataset_path)[0]
     # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
     # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
     # img_height, img_width, _ = img.shape
@@ -54,7 +52,7 @@ def resnet_train(dataset_name, project_name):
     img_size = 224
 
     # Set batch size
-    batch_size = 64
+    batch_size = 16
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
@@ -115,9 +113,11 @@ def resnet_train(dataset_name, project_name):
     # Train the model
     resnet_model.fit(
         train_generator,
+        # steps_per_epoch=train_generator.samples // batch_size,
         epochs=epochs,
         validation_data=test_generator,
-        callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks],
+        # validation_steps=test_generator.samples // batch_size,
+        callbacks=[clearml_log_callbacks, early_stopping],
     )
 
     trained_model_dir = "Trained Models"
@@ -127,7 +127,7 @@ def resnet_train(dataset_name, project_name):
         os.makedirs(trained_model_dir)
 
     model_file_name = "cropspot_resnet_model.h5"
-    resnet_model.save(trained_model_dir + "/" + model_file_name)
+    resnet_model.save(os.path.join(trained_model_dir, model_file_name))
 
     output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
 

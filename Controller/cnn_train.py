@@ -20,6 +20,7 @@ def custom_cnn_train(dataset_name, project_name):
     import matplotlib.pyplot as plt
     from keras.models import Model
     from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
+    from keras.models import Sequential
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
@@ -41,14 +42,15 @@ def custom_cnn_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # # Get image size from the first image from the healthy directory
-    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    # img_height, img_width, _ = img.shape
-    # img_size = min(img_height, img_width)
-    img_size = 224
+    # Get image size from the first image from the healthy directory
+    first_category = os.listdir(dataset_path)[0]
+    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    img_height, img_width, _ = img.shape
+    img_size = min(img_height, img_width)
+    # img_size = 224
 
-    batch_size = 64
+    batch_size = 16
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
@@ -65,21 +67,24 @@ def custom_cnn_train(dataset_name, project_name):
     early_stopping = EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True)
     learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001)
 
-    inputs = Input(shape=(img_size, img_size, 3))
-    x = Conv2D(32, (3, 3), activation="relu")(inputs)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Conv2D(64, (3, 3), activation="relu")(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Conv2D(128, (3, 3), activation="relu")(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Conv2D(128, (3, 3), activation="relu")(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Flatten()(x)
-    x = Dense(128, activation="relu")(x)
-    x = Dropout(0.5)(x)
-    predictions = Dense(num_classes, activation="softmax")(x)
+    model = Sequential(
+        [
+            Conv2D(32, (3, 3), activation="relu", input_shape=(img_size, img_size, 3)),
+            MaxPooling2D(pool_size=(2, 2)),
+            Conv2D(64, (3, 3), activation="relu"),
+            MaxPooling2D(pool_size=(2, 2)),
+            Conv2D(128, (3, 3), activation="relu"),
+            MaxPooling2D(pool_size=(2, 2)),
+            Conv2D(256, (3, 3), activation="relu"),
+            MaxPooling2D(pool_size=(2, 2)),
+            Flatten(),
+            Dense(512, activation="relu"),
+            Dropout(0.5),
+            Dense(num_classes, activation="softmax"),
+        ]
+    )
 
-    cnn_model = Model(inputs=inputs, outputs=predictions)
+    cnn_model = model
     cnn_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
     logger = task.get_logger()
@@ -94,7 +99,14 @@ def custom_cnn_train(dataset_name, project_name):
         )
     ]
 
-    cnn_model.fit(train_generator, epochs=epochs, validation_data=test_generator, callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks])
+    cnn_model.fit(
+        train_generator,
+        # steps_per_epoch=train_generator.samples // batch_size,
+        epochs=epochs,
+        validation_data=test_generator,
+        # validation_steps=test_generator.samples // batch_size,
+        callbacks=[clearml_log_callbacks, early_stopping],
+    )
 
     trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):

@@ -29,9 +29,19 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
+    # # Get image size from the first image from the healthy directory
+    # first_category = os.listdir(dataset_path)[0]
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
+    img_size = 224
+
+    batch_size = 16
+
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
-    test_generator = test_datagen.flow_from_directory(dataset_path, target_size=(224, 224), batch_size=16, class_mode="categorical", shuffle=True)
+    test_generator = test_datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True)
 
     # Calculate the correct number of steps per epoch
     steps = ceil(test_generator.samples / test_generator.batch_size)
@@ -78,7 +88,7 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     plt.legend(loc="lower right")
     plt.show()
 
-    return f1
+    return score[1]
 
 
 if __name__ == "__main__":
