@@ -13,8 +13,8 @@ jobs:
       CLEARML_API_HOST: ${{ secrets.CLEARML_API_HOST }}
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
       COMMIT_ID: ${{ github.event.pull_request.head.sha }}
-      runs-on: ubuntu-latest
-      steps:
+    runs-on: ubuntu-latest
+    steps:
         - uses: actions/checkout@v3
         - uses: actions/setup-python@v4
           with:
