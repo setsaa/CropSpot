@@ -1,25 +1,23 @@
-def evaluate_model(model_path, history_path, test_data_dir):
+def evaluate_model(model_name, test_data_dir, task_name):
+    from clearml import Task, Dataset, OutputModel, InputModel
+
+    task = Task.init(project_name="CropSpot", task_name=task_name)
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
+
+    import os
     import numpy as np
     import matplotlib.pyplot as plt
     import seaborn as sns
-    import tensorflow as tf
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from tensorflow.keras.models import Model, load_model
+    from keras.preprocessing.image import ImageDataGenerator
+    from keras.models import Model, load_model
     from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
     from sklearn.preprocessing import label_binarize
     from itertools import cycle
     from math import ceil
     import pickle as pkl
-    from clearml import Task
-
-    task = Task.init(project_name="CropSpot", task_name="Model Evaluation", task_type=Task.TaskTypes.testing)
 
     # Load the model
-    model = load_model(model_path)
-
-    # Load history
-    with open(history_path, "rb") as file:
-        history = pkl.load(file)
+    model = InputModel(name=model_name).connect()
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)
