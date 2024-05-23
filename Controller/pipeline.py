@@ -35,6 +35,8 @@ def create_CropSpot_pipeline(
     from compare_models import compare_models
     from update_model import update_repository
 
+    packages = ["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"]
+
     # Initialize a new pipeline controller task
     pipeline = PipelineController(name=pipeline_name, project=project_name, add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)
 
@@ -69,7 +71,7 @@ def create_CropSpot_pipeline(
         parents=None,
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 2: Preprocess Data
@@ -86,7 +88,7 @@ def create_CropSpot_pipeline(
         parents=["Data_Upload"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 3(a): Train Model(s)
@@ -103,7 +105,7 @@ def create_CropSpot_pipeline(
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 3(b): Train Model(s)
@@ -120,7 +122,7 @@ def create_CropSpot_pipeline(
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 3(c): Train Model(s)
@@ -137,7 +139,7 @@ def create_CropSpot_pipeline(
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 4(a): Evaluate Model(s)
@@ -156,7 +158,7 @@ def create_CropSpot_pipeline(
         parents=["ResNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 4(b): Evaluate Model(s)
@@ -175,7 +177,7 @@ def create_CropSpot_pipeline(
         parents=["DenseNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 4(c): Evaluate Model(s)
@@ -194,7 +196,7 @@ def create_CropSpot_pipeline(
         parents=["CNN_Model_Training"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # Step 5: Compare Model(s)
@@ -216,7 +218,7 @@ def create_CropSpot_pipeline(
         parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
         project_name=project_name,
         cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        packages=packages,
     )
 
     # # Step 5: Update Model in GitHub Repository
