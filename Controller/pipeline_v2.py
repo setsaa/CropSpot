@@ -16,7 +16,7 @@ from compare_models import compare_models
     cache=True,
     task_type=Task.TaskTypes.data_processing,
     parents=[],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def upload_data_pipeline(project_name, dataset_name, queue_name):
@@ -30,7 +30,7 @@ def upload_data_pipeline(project_name, dataset_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.data_processing,
     parents=["Upload_Data"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def preprocess_data_pipeline(dataset_name, project_name, queue_name):
@@ -44,7 +44,7 @@ def preprocess_data_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Preprocess_Data"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def resnet_train_pipeline(dataset_name, project_name, queue_name):
@@ -58,7 +58,7 @@ def resnet_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Train_ResNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def densenet_train_pipeline(dataset_name, project_name, queue_name):
@@ -72,7 +72,7 @@ def densenet_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Train_DenseNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
@@ -86,7 +86,7 @@ def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_ResNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -100,7 +100,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_DenseNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -114,7 +114,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_CNN"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -128,7 +128,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Eval_ResNet", "Eval_DenseNet", "Eval_CNN"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queue_name):
@@ -142,7 +142,7 @@ def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queu
 
 
 # Create a ClearML pipeline for the CropSpot project.
-@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="raspberry_pi", default_queue="raspberry_pi")
+@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="helldiver", default_queue="helldiver")
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     # Parse the arguments
     args = parser.parse_args()
 
-    PipelineDecorator.set_default_execution_queue("raspberry_pi")
+    PipelineDecorator.set_default_execution_queue("helldiver")
 
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
@@ -305,5 +305,5 @@ if __name__ == "__main__":
         model_name=args.model_name,
     )
 
-    PipelineDecorator.start(queue="raspberry_pi", exit_process=True)
+    PipelineDecorator.start(queue="helldiver")
     # PipelineDecorator.start_locally(run_pipeline_steps_locally=True)
