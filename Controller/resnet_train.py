@@ -29,7 +29,8 @@ def resnet_train(dataset_name, project_name):
     model_file_name = "cropspot_resnet_model.h5"
 
     # TEMP
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True).connect()
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    existing_model.connect(task=task)
     if existing_model:
         print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
         return existing_model.id
@@ -44,8 +45,7 @@ def resnet_train(dataset_name, project_name):
         dataset.get_mutable_local_copy(dataset_path)
 
     # Get first category
-    first_category = os.listdir(dataset_path)[0]
-
+    # first_category = os.listdir(dataset_path)[0]
     # # Get image size from the first image from the healthy directory
     # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
     # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")

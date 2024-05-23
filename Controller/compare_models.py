@@ -26,7 +26,8 @@ def compare_models(model_name_1, model_score_1, model_name_2, model_score_2, mod
             best_score = model_score
 
     # Load the best model
-    model = InputModel(name=best_model[:-3], project=project_name, only_published=True).connect()
+    model = InputModel(name=best_model[:-3], project=project_name, only_published=True)
+    model.connect(task=task)
 
     return model.id
 

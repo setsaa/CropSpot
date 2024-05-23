@@ -17,7 +17,8 @@ def evaluate_model(model_name, test_data_dir, task_name, project_name):
     import pickle as pkl
 
     # Load the model
-    model = InputModel(name=model_name[:-3], project=project_name, only_published=True).connect()
+    model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
+    model.connect(task=task)
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)

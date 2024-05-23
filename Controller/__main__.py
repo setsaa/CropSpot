@@ -64,7 +64,7 @@ if __name__ == "__main__":
         "--test_data_dir",
         type=str,
         required=False,
-        default="Dataset/Preprocessed",
+        default="TomatoDiseaseDatasetV2_preprocessed",
         help="Directory containing test data",
     )
     parser.add_argument(

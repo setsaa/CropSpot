@@ -26,7 +26,8 @@ def custom_cnn_train(dataset_name, project_name):
 
     # TEMP
     model_file_name = "cropspot_CNN_model.h5"
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True).connect()
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    existing_model.connect(task=task)
     if existing_model:
         print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
         return existing_model.id
