@@ -10,55 +10,55 @@ from compare_models import compare_models
 
 
 # Step 1: Upload Data
-@PipelineDecorator.component(name="Upload_Data", return_values=["dataset_id", "dataset_name"], cache=True, task_type=Task.TaskTypes.data_processing, parents=[])
+@PipelineDecorator.component(name="Upload_Data", return_values=["dataset_id", "dataset_name"], cache=True, task_type=Task.TaskTypes.data_processing, parents=[], execution_queue="helldiver")
 def upload_data_pipeline(project_name, dataset_name, queue_name):
     return upload_dataset(project_name=project_name, dataset_name=dataset_name, queue_name=queue_name)
 
 
 # Step 2: Preprocess Data
-@PipelineDecorator.component(name="Preprocess_Data", return_values=["preprocessed_dataset_id", "preprocessed_dataset_name"], cache=True, task_type=Task.TaskTypes.data_processing, parents=["Upload_Data"])
+@PipelineDecorator.component(name="Preprocess_Data", return_values=["preprocessed_dataset_id", "preprocessed_dataset_name"], cache=True, task_type=Task.TaskTypes.data_processing, parents=["Upload_Data"], execution_queue="helldiver")
 def preprocess_data_pipeline(dataset_name, project_name, queue_name):
     return preprocess_dataset(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
 # Step 3(a): Train ResNet Model
-@PipelineDecorator.component(name="Train_ResNet", return_values=["resnet_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Preprocess_Data"])
+@PipelineDecorator.component(name="Train_ResNet", return_values=["resnet_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Preprocess_Data"], execution_queue="helldiver")
 def resnet_train_pipeline(dataset_name, project_name, queue_name):
     return resnet_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
 # Step 3(b): Train DenseNet Model
-@PipelineDecorator.component(name="Train_DenseNet", return_values=["densenet_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Train_ResNet"])
+@PipelineDecorator.component(name="Train_DenseNet", return_values=["densenet_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Train_ResNet"], execution_queue="helldiver")
 def densenet_train_pipeline(dataset_name, project_name, queue_name):
     return densenet_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
 # Step 3(c): Train CNN Model
-@PipelineDecorator.component(name="Train_CNN", return_values=["custom_cnn_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Train_DenseNet"])
+@PipelineDecorator.component(name="Train_CNN", return_values=["custom_cnn_model_id"], cache=True, task_type=Task.TaskTypes.training, parents=["Train_DenseNet"], execution_queue="helldiver")
 def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
     return custom_cnn_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
 # Step 4(a): Evaluate ResNet Model
-@PipelineDecorator.component(name="Eval_ResNet", return_values=["resnet_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_ResNet"])
+@PipelineDecorator.component(name="Eval_ResNet", return_values=["resnet_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_ResNet"], execution_queue="helldiver")
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
     return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 4(b): Evaluate DenseNet Model
-@PipelineDecorator.component(name="Eval_DenseNet", return_values=["densenet_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_DenseNet"])
+@PipelineDecorator.component(name="Eval_DenseNet", return_values=["densenet_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_DenseNet"], execution_queue="helldiver")
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
     return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 4(c): Evaluate CNN Model
-@PipelineDecorator.component(name="Eval_CNN", return_values=["cnn_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_CNN"])
+@PipelineDecorator.component(name="Eval_CNN", return_values=["cnn_evaluation_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Train_CNN"], execution_queue="helldiver")
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
     return evaluate_model(model_path=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
 # Step 5: Compare Models
-@PipelineDecorator.component(name="Compare_Models", return_values=["model_comparison_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Eval_ResNet", "Eval_DenseNet", "Eval_CNN"])
+@PipelineDecorator.component(name="Compare_Models", return_values=["model_comparison_id"], cache=True, task_type=Task.TaskTypes.testing, parents=["Eval_ResNet", "Eval_DenseNet", "Eval_CNN"], execution_queue="helldiver")
 def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queue_name):
     return compare_models(model_path_1=model_path_1, model_path_2=model_path_2, model_path_3=model_path_3, test_data_dir=test_data_dir, queue_name=queue_name)
 
@@ -70,7 +70,7 @@ def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queu
 
 
 # Create a ClearML pipeline for the CropSpot project.
-@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="helldiver")
+@PipelineDecorator.pipeline(name="CropSpot Pipeline", project="CropSpot", version="1.0", pipeline_execution_queue="raspberry_pi", default_queue="raspberry_pi")
 def create_CropSpot_pipeline(
     pipeline_name,
     project_name,
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     # Parse the arguments
     args = parser.parse_args()
 
-    PipelineDecorator.set_default_execution_queue("helldiver_2")
+    PipelineDecorator.set_default_execution_queue("raspberry_pi")
 
     # Call the function with the parsed arguments
     create_CropSpot_pipeline(
@@ -233,5 +233,5 @@ if __name__ == "__main__":
         model_name=args.model_name,
     )
 
-    PipelineDecorator.start(queue="helldiver", exit_process=True)
+    PipelineDecorator.start(queue="raspberry_pi", exit_process=True)
     # PipelineDecorator.start_locally(run_pipeline_steps_locally=True)
