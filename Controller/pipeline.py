@@ -118,7 +118,7 @@ def create_CropSpot_pipeline(
         ),
         task_type=Task.TaskTypes.training,
         function_return=["densenet_model_id"],
-        parents=["Data_Preprocessing"],
+        parents=["Data_Preprocessing", "ResNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
     )
@@ -135,7 +135,7 @@ def create_CropSpot_pipeline(
         ),
         task_type=Task.TaskTypes.training,
         function_return=["cnn_model_id"],
-        parents=["Data_Preprocessing"],
+        parents=["Data_Preprocessing", "DenseNet_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
     )

@@ -31,10 +31,11 @@ def resnet_train(dataset_name, project_name, queue_name):
     model_history_file_name = "cropspot_resnet_model_History.pkl"
 
     # Load preprocessed dataset
-    dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+    prep_dataset_name = dataset_name + "_preprocessed"
+    dataset = Dataset.get(dataset_name=prep_dataset_name)
 
     # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
-    dataset_path = f"Dataset/{dataset_name + "_preprocessed"}"
+    dataset_path = f"Dataset/{prep_dataset_name}"
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
@@ -53,14 +54,14 @@ def resnet_train(dataset_name, project_name, queue_name):
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
-        rotation_range=45,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        vertical_flip=True,
-        zoom_range=0.25,
-        shear_range=0.2,
-        brightness_range=[0.2, 1.0],
+        # rotation_range=45,
+        # width_shift_range=0.2,
+        # height_shift_range=0.2,
+        # horizontal_flip=True,
+        # vertical_flip=True,
+        # zoom_range=0.25,
+        # shear_range=0.2,
+        # brightness_range=[0.2, 1.0],
         validation_split=0.2,
     )
 
@@ -121,7 +122,7 @@ def resnet_train(dataset_name, project_name, queue_name):
         validation_data=test_generator,
         callbacks=[learning_rate_reduction, early_stopping, clearml_log_callbacks],
     )
-    
+
     trained_model_dir = "Trained Models"
 
     # Save and upload the model to ClearML

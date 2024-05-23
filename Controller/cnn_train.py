@@ -28,9 +28,12 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
 
-    dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+    # Load preprocessed dataset
+    prep_dataset_name = dataset_name + "_preprocessed"
+    dataset = Dataset.get(dataset_name=prep_dataset_name)
 
-    dataset_path = f"Dataset/{dataset_name + "_preprocessed"}"
+    # Check if the dataset is already downloaded. If not, download it. Otherwise, use the existing dataset.
+    dataset_path = f"Dataset/{prep_dataset_name}"
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
@@ -41,18 +44,18 @@ def custom_cnn_train(dataset_name, project_name, queue_name):
     img_size = min(img_height, img_width)
 
     batch_size = 64
-    
+
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
-        rotation_range=45,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True,
-        vertical_flip=True,
-        zoom_range=0.25,
-        shear_range=0.2,
-        brightness_range=[0.2, 1.0],
+        # rotation_range=45,
+        # width_shift_range=0.2,
+        # height_shift_range=0.2,
+        # horizontal_flip=True,
+        # vertical_flip=True,
+        # zoom_range=0.25,
+        # shear_range=0.2,
+        # brightness_range=[0.2, 1.0],
         validation_split=0.2,
     )
 
