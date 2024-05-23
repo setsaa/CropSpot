@@ -1,5 +1,9 @@
 import argparse
+
+# from pipeline_v2 import create_CropSpot_pipeline
+
 from pipeline import create_CropSpot_pipeline
+
 from clearml import Task
 
 if __name__ == "__main__":
@@ -25,14 +29,14 @@ if __name__ == "__main__":
         "--dataset_name",
         type=str,
         required=False,
-        default="TomatoDiseaseDataset",
-        help="Name for the raw dataset",
+        default="TomatoDiseaseDatasetV2",
+        help="Name for the original dataset",
     )
     parser.add_argument(
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="helldiver_2",
         help="ClearML queue name",
     )
     parser.add_argument(

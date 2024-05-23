@@ -30,21 +30,21 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     raw_dataset = Dataset.get(dataset_name=dataset_name)
 
     # Check if the preprocessed dataset is already downloaded. If not, download it and preprocess the images.
-    preprocessed_dir = Path("Dataset/Preprocessed")
-    if not preprocessed_dir.exists():
-        print("Downloading the dataset...")
-        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
-    else:
-        print("Dataset already downloaded")
+    preprocessed_dir = Path(f"Dataset/{dataset_name}_preprocessed")
+    if preprocessed_dir.exists():
+        print("Dataset already exists")
+
+        # TEMP CHANGE
+        prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+        return prep_dataset.id, prep_dataset.name
 
         # Remove the old preprocessed directory
         print("Removing the old preprocessed directory...")
         shutil.rmtree(preprocessed_dir)
         preprocessed_dir.mkdir()
 
-        # Download the dataset
-        print("Downloading latest dataset...")
-        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
+    print("Downloading the dataset...")
+    raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
 
     # New preprocessed directory
     print("Processing images...")
@@ -54,7 +54,7 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
         # Remove non-jpg files
         count = 0
         for file in os.listdir(category_path):
-            if not file.endswith(".jpg"):
+            if not file.lower().endswith(".jpg"):
                 os.remove(os.path.join(category_path, file))
                 count += 1
         print(f"Removed {count} non-jpg files.")
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
-    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
+    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDatasetV2", help="Name of the raw dataset")
     parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
