@@ -1,6 +1,6 @@
-def custom_cnn_train(dataset_name, project_name):
+def vgg_train(dataset_name, project_name):
     """
-    Train the model using a custom CNN architecture with preprocessed dataset.
+    Train the model using vgg architecture with preprocessed dataset.
 
     Args:
         dataset_name (str): Name of the preprocessed dataset
@@ -10,28 +10,30 @@ def custom_cnn_train(dataset_name, project_name):
     Returns:
         ID of the trained model
     """
+
     from clearml import Task, Dataset, OutputModel, InputModel
 
-    task = Task.init(project_name=project_name, task_name="CNN Train Model")
+    task = Task.init(project_name=project_name, task_name="vgg Train Model")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
-    import pickle
     import matplotlib.pyplot as plt
-    from keras.models import Model
-    from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, Input
-    from keras.models import Sequential
+    from keras.models import Model, load_model
+    from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
+    from keras.regularizers import L2
+    from keras.applications import VGG19
+    from keras.applications.vgg19 import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
-    # TEMP
-    model_file_name = "cropspot_CNN_model.h5"
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    existing_model.connect(task=task)
-    if existing_model:
-        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-        return existing_model.id
+    # # TEMP
+    # model_file_name = "cropspot_vgg_model.h5"
+    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # existing_model.connect(task=task)
+    # if existing_model:
+    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    #     return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -50,11 +52,10 @@ def custom_cnn_train(dataset_name, project_name):
     # img_size = min(img_height, img_width)
     img_size = 224
 
-    batch_size = 32
+    batch_size = 64
 
-    # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
-        rescale=1.0 / 255,
+        preprocessing_function=preprocess_input,
         validation_split=0.2,
     )
 
@@ -67,25 +68,25 @@ def custom_cnn_train(dataset_name, project_name):
     early_stopping = EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True)
     learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001)
 
-    model = Sequential(
-        [
-            Conv2D(32, (3, 3), activation="relu", padding="same", input_shape=(img_size, img_size, 3)),
-            MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(64, (3, 3), padding="same", activation="relu"),
-            MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(128, (3, 3), padding="same", activation="relu"),
-            MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(256, (3, 3), padding="same", activation="relu"),
-            MaxPooling2D(pool_size=(2, 2)),
-            Flatten(),
-            Dense(512, activation="relu"),
-            Dropout(0.5),
-            Dense(num_classes, activation="softmax"),
-        ]
-    )
+    base_vgg_model = VGG19(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
 
-    cnn_model = model
-    cnn_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+    for layer in base_vgg_model.layers:
+        layer.trainable = False
+
+    x = base_vgg_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dense(512, kernel_regularizer=L2(0.01))(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(0.2)(x)
+    x = Dense(1024, kernel_regularizer=L2(0.01))(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(0.2)(x)
+    predictions = Dense(num_classes, activation="softmax")(x)
+
+    vgg_model = Model(inputs=base_vgg_model.input, outputs=predictions)
+    vgg_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
     # Manual logging within model.fit() callback
     logger = task.get_logger()
@@ -105,7 +106,7 @@ def custom_cnn_train(dataset_name, project_name):
         )
     ]
 
-    cnn_model.fit(
+    vgg_model.fit(
         train_generator,
         # steps_per_epoch=train_generator.samples // batch_size,
         epochs=epochs,
@@ -117,13 +118,12 @@ def custom_cnn_train(dataset_name, project_name):
     trained_model_dir = "Trained Models"
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
+    vgg_model.save(os.path.join(trained_model_dir, "cropspot_vgg_model.h5"))
 
-    cnn_model.save(os.path.join(trained_model_dir, "cropspot_CNN_model.h5"))
+    output_model = OutputModel(task=task, name="cropspot_vgg_model", framework="Tensorflow")
+    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_vgg_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
 
-    output_model = OutputModel(task=task, name="cropspot_CNN_model", framework="Tensorflow")
-    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_CNN_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
-
-    task.upload_artifact("CNN Model", artifact_object="cropspot_CNN_model.h5")
+    task.upload_artifact("VGG Model", artifact_object="cropspot_vgg_model.h5")
 
     output_model.publish()
 
@@ -133,14 +133,12 @@ def custom_cnn_train(dataset_name, project_name):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDatasetV2", help="Name of the preprocessed dataset")
-    parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
-    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
+    parser = argparse.ArgumentParser(description="Train a VGG model with ClearML on the preprocessed dataset")
+    parser.add_argument("--dataset_name", type=str, required=False, default="YourDatasetName", help="Name of the preprocessed dataset")
+    parser.add_argument("--project_name", type=str, required=False, default="YourProjectName", help="Name of the ClearML project")
 
     args = parser.parse_args()
 
-    model_id = custom_cnn_train(args.dataset_name, args.project_name, args.queue_name)
+    model_id = vgg_train(args.dataset_name, args.project_name, args.queue_name)
 
     print(f"Model trained with ID: {model_id}")

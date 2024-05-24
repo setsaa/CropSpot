@@ -14,7 +14,6 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     from sklearn.preprocessing import label_binarize
     from itertools import cycle
     from math import ceil
-    import pickle as pkl
 
     # Load the model
     input_model = InputModel(name=model_name[:-3], project=project_name, only_published=True)
@@ -37,7 +36,7 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     # img_size = min(img_height, img_width)
     img_size = 224
 
-    batch_size = 32
+    batch_size = 64
 
     # Data generator for evaluation
     test_datagen = ImageDataGenerator(rescale=1.0 / 255)

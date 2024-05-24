@@ -3,7 +3,7 @@ from upload_data import upload_dataset, download_dataset
 from preprocess_data import preprocess_dataset
 from resnet_train import resnet_train
 from densenet_train import densenet_train
-from cnn_train import custom_cnn_train
+from vgg_train import vgg_train
 from model_evaluation import evaluate_model
 from update_model import update_repository
 from compare_models import compare_models
@@ -65,18 +65,18 @@ def densenet_train_pipeline(dataset_name, project_name, queue_name):
     return densenet_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
-# Step 3(c): Train CNN Model
+# Step 3(c): Train vgg Model
 @PipelineDecorator.component(
-    name="Train_CNN",
-    return_values=["custom_cnn_model_id"],
+    name="Train_VGG",
+    return_values=["custom_vgg_model_id"],
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Train_DenseNet"],
     execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
-def custom_cnn_train_pipeline(dataset_name, project_name, queue_name):
-    return custom_cnn_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
+def custom_vgg_train_pipeline(dataset_name, project_name, queue_name):
+    return vgg_train(dataset_name=dataset_name, project_name=project_name, queue_name=queue_name)
 
 
 # Step 4(a): Evaluate ResNet Model
@@ -107,13 +107,13 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     return evaluate_model(model_name=model_path, history_path=history_path, test_data_dir=test_data_dir, queue_name=queue_name)
 
 
-# Step 4(c): Evaluate CNN Model
+# Step 4(c): Evaluate vgg Model
 @PipelineDecorator.component(
-    name="Eval_CNN",
-    return_values=["cnn_evaluation_id"],
+    name="Eval_vgg",
+    return_values=["vgg_evaluation_id"],
     cache=True,
     task_type=Task.TaskTypes.testing,
-    parents=["Train_CNN"],
+    parents=["Train_vgg"],
     execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
@@ -127,7 +127,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     return_values=["model_comparison_id"],
     cache=True,
     task_type=Task.TaskTypes.testing,
-    parents=["Eval_ResNet", "Eval_DenseNet", "Eval_CNN"],
+    parents=["Eval_ResNet", "Eval_DenseNet", "Eval_VGG"],
     execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
@@ -169,8 +169,8 @@ def create_CropSpot_pipeline(
     # Step 3(b): Train DenseNet Model
     densenet_id = densenet_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
 
-    # Step 3(c): Train CNN Model
-    cnn_id = custom_cnn_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
+    # Step 3(c): Train vgg Model
+    vgg_id = custom_vgg_train_pipeline(dataset_name=prep_dataset_name, project_name=project_name, queue_name=queue_name)
 
     # Step 4(a): Evaluate ResNet Model
     resnet_f1 = evaluate_model_pipeline(model_path=resnet_id, history_path="Trained Models/resnet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
@@ -178,11 +178,11 @@ def create_CropSpot_pipeline(
     # Step 4(b): Evaluate DenseNet Model
     densenet_f1 = evaluate_model_pipeline(model_path=densenet_id, history_path="Trained Models/densenet_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
 
-    # Step 4(c): Evaluate CNN Model
-    cnn_f1 = evaluate_model_pipeline(model_path=cnn_id, history_path="Trained Models/cnn_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
+    # Step 4(c): Evaluate vgg Model
+    vgg_f1 = evaluate_model_pipeline(model_path=vgg_id, history_path="Trained Models/vgg_history.json", test_data_dir=test_data_dir, queue_name=queue_name)
 
     # Step 5: Compare Models
-    best_model_id = compare_models(model_path_1=resnet_id, model_path_2=densenet_id, model_path_3=cnn_id, test_data_dir=test_data_dir, queue_name=queue_name)
+    best_model_id = compare_models(model_path_1=resnet_id, model_path_2=densenet_id, model_path_3=vgg_id, test_data_dir=test_data_dir, queue_name=queue_name)
 
     # # Step 5: Update Model in GitHub Repository
     # update_model_pipeline(repo_path=repo_path, branch=branch, commit_message=commit_message, project_name=project_name, model_name=model_name)
@@ -245,7 +245,7 @@ if __name__ == "__main__":
         "--model_path_3",
         type=str,
         required=False,
-        default="Trained Models/cropspot_CNN_model.h5",
+        default="Trained Models/cropspot_vgg_model.h5",
         help="Local model path",
     )
     parser.add_argument(

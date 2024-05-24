@@ -30,7 +30,7 @@ def create_CropSpot_pipeline(
     from preprocess_data import preprocess_dataset
     from resnet_train import resnet_train
     from densenet_train import densenet_train
-    from cnn_train import custom_cnn_train
+    from vgg_train import vgg_train
     from model_evaluation import evaluate_model
     from compare_models import compare_models
     from update_model import update_repository
@@ -127,15 +127,15 @@ def create_CropSpot_pipeline(
 
     # Step 3(c): Train Model(s)
     pipeline.add_function_step(
-        name="CNN_Model_Training",
-        task_name="CNN Train Model",
-        function=custom_cnn_train,
+        name="VGG_Model_Training",
+        task_name="VGG Train Model",
+        function=vgg_train,
         function_kwargs=dict(
             dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
-        function_return=["cnn_model_id"],
+        function_return=["VGG_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
         cache_executed_step=False,
@@ -170,7 +170,7 @@ def create_CropSpot_pipeline(
             model_name="${pipeline.model_name_2}",
             test_dataset="${pipeline.test_dataset}",
             project_name="${pipeline.project_name}",
-            task_name="ResNet Evaluate Model",
+            task_name="DenseNet Evaluate Model",
         ),
         task_type=Task.TaskTypes.testing,
         function_return=["test_accuracy"],
@@ -182,18 +182,18 @@ def create_CropSpot_pipeline(
 
     # Step 4(c): Evaluate Model(s)
     pipeline.add_function_step(
-        name="CNN_Model_Evaluation",
-        task_name="CNN Evaluate Model",
+        name="VGG_Model_Evaluation",
+        task_name="VGG Evaluate Model",
         function=evaluate_model,
         function_kwargs=dict(
             model_name="${pipeline.model_name_3}",
             test_dataset="${pipeline.test_dataset}",
             project_name="${pipeline.project_name}",
-            task_name="ResNet Evaluate Model",
+            task_name="VGG Evaluate Model",
         ),
         task_type=Task.TaskTypes.testing,
         function_return=["test_accuracy"],
-        parents=["CNN_Model_Training"],
+        parents=["VGG_Model_Training"],
         project_name=project_name,
         cache_executed_step=False,
         packages=packages,
@@ -210,12 +210,12 @@ def create_CropSpot_pipeline(
             model_name_2="${pipeline.model_name_2}",
             model_score_2="${DenseNet_Model_Evaluation.test_accuracy}",
             model_name_3="${pipeline.model_name_3}",
-            model_score_3="${CNN_Model_Evaluation.test_accuracy}",
+            model_score_3="${VGG_Model_Evaluation.test_accuracy}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.service,
         function_return=["best_model_id"],
-        parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
+        parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "VGG_Model_Evaluation"],
         project_name=project_name,
         cache_executed_step=False,
         packages=packages,
@@ -244,112 +244,3 @@ def create_CropSpot_pipeline(
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
     pipeline.start(queue="helldiver")
     # pipeline.start_locally(run_pipeline_steps_locally=True)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Create the parser
-    parser = argparse.ArgumentParser(description="Run CropSpot Pipeline")
-
-    # Add arguments
-    parser.add_argument(
-        "--pipeline_name",
-        type=str,
-        required=False,
-        default="CropSpot Pipeline",
-        help="Name of the pipeline",
-    )
-    parser.add_argument(
-        "--project_name",
-        type=str,
-        required=False,
-        default="CropSpot",
-        help="Project name for datasets",
-    )
-    parser.add_argument(
-        "--dataset_name",
-        type=str,
-        required=False,
-        default="TomatoDiseaseDatasetV2",
-        help="Name for the original dataset",
-    )
-    parser.add_argument(
-        "--queue_name",
-        type=str,
-        required=False,
-        default="helldiver_2",
-        help="ClearML queue name",
-    )
-    parser.add_argument(
-        "--model_name_1",
-        type=str,
-        required=False,
-        default="cropspot_resnet_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--model_name_2",
-        type=str,
-        required=False,
-        default="cropspot_densenet_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--model_name_3",
-        type=str,
-        required=False,
-        default="cropspot_CNN_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--test_dataset",
-        type=str,
-        required=False,
-        default="Dataset/Preprocessed",
-        help="Directory containing test data",
-    )
-    parser.add_argument(
-        "--repo_path",
-        type=str,
-        required=False,
-        default=".",
-        help="Path to the local Git repository",
-    )
-    parser.add_argument(
-        "--branch",
-        type=str,
-        required=False,
-        default="Crop-33-Deploy-MLOPs-pipeline",
-        help="The branch to commit and push changes to",
-    )
-    parser.add_argument(
-        "--commit_message",
-        type=str,
-        required=False,
-        default="Automated commit of model changes",
-        help="Commit message",
-    )
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        required=False,
-        default="CropSpot_Model",
-        help="ClearML trained model",
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Call the function with the parsed arguments
-    create_CropSpot_pipeline(
-        pipeline_name=args.pipeline_name,
-        project_name=args.project_name,
-        dataset_name=args.dataset_name,
-        queue_name=args.queue_name,
-        test_dataset=args.test_dataset,
-        repo_path=args.repo_path,
-        branch=args.branch,
-        commit_message=args.commit_message,
-        model_name=args.model_name,
-    )

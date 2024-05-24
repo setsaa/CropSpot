@@ -23,16 +23,17 @@ def resnet_train(dataset_name, project_name):
     from keras.applications import ResNet50V2
     from keras.applications.resnet_v2 import preprocess_input
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from keras.regularizers import L2
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-    # TEMP
-    model_file_name = "cropspot_resnet_model.h5"
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    existing_model.connect(task=task)
-    if existing_model:
-        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-        return existing_model.id
+    # # TEMP
+    # model_file_name = "cropspot_resnet_model.h5"
+    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # existing_model.connect(task=task)
+    # if existing_model:
+    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    #     return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -52,7 +53,7 @@ def resnet_train(dataset_name, project_name):
     img_size = 224
 
     # Set batch size
-    batch_size = 32
+    batch_size = 64
 
     # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
@@ -80,10 +81,14 @@ def resnet_train(dataset_name, project_name):
     # Add custom layers
     x = base_resNet_model.output
     x = GlobalAveragePooling2D()(x)
-    x = Dense(1024)(x)
+    x = Dense(512, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    x = Dropout(0.3)(x)
+    x = Dropout(0.2)(x)
+    x = Dense(1024, kernel_regularizer=L2(0.01))(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(0.2)(x)
     predictions = Dense(num_classes, activation="softmax")(x)
 
     # Create model
