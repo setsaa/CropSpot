@@ -16,7 +16,7 @@ from compare_models import compare_models
     cache=True,
     task_type=Task.TaskTypes.data_processing,
     parents=[],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def upload_data_pipeline(project_name, dataset_name, queue_name):
@@ -30,7 +30,7 @@ def upload_data_pipeline(project_name, dataset_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.data_processing,
     parents=["Upload_Data"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def preprocess_data_pipeline(dataset_name, project_name, queue_name):
@@ -44,7 +44,7 @@ def preprocess_data_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Preprocess_Data"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def resnet_train_pipeline(dataset_name, project_name, queue_name):
@@ -58,7 +58,7 @@ def resnet_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Train_ResNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def densenet_train_pipeline(dataset_name, project_name, queue_name):
@@ -72,7 +72,7 @@ def densenet_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.training,
     parents=["Train_DenseNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def custom_vgg_train_pipeline(dataset_name, project_name, queue_name):
@@ -86,7 +86,7 @@ def custom_vgg_train_pipeline(dataset_name, project_name, queue_name):
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_ResNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -100,7 +100,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_DenseNet"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -114,7 +114,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Train_vgg"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name):
@@ -128,7 +128,7 @@ def evaluate_model_pipeline(model_path, history_path, test_data_dir, queue_name)
     cache=True,
     task_type=Task.TaskTypes.testing,
     parents=["Eval_ResNet", "Eval_DenseNet", "Eval_VGG"],
-    execution_queue="helldiver",
+    execution_queue="helldiver_2",
     packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
 )
 def compare_models(model_path_1, model_path_2, model_path_3, test_data_dir, queue_name):

@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver",
+        default="helldiver_2",
         help="ClearML queue name",
     )
     parser.add_argument(

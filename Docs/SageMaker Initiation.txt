@@ -1,15 +1,11 @@
-python -m venv CropSpot
-
-/usr/bin/sh CropSpot/bin/activate
-
 pip install clearml
 
 pip install clearml-agent
 
 clearml-agent init
 
-clearml-agent daemon --queue "helldiver" --foreground
-
 clearml-agent daemon --queue "helldiver" --detached
 
-clearml-agent daemon --queue "helldiver" --foreground --stop
+clearml-agent daemon --queue "helldiver" --foreground
+
+clearml-agent daemon --queue "helldiver" --detached --stop
