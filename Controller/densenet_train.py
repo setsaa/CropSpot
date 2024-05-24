@@ -23,17 +23,18 @@ def densenet_train(dataset_name, project_name):
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.regularizers import L2
+    from keras.regularizers import L2
     from keras.applications import DenseNet121
     from keras.applications.densenet import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
-    # # TEMP
-    # model_file_name = "cropspot_densenet_model.h5"
-    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    # existing_model.connect(task=task)
-    # if existing_model:
-    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-    #     return existing_model.id
+    # # # TEMP
+    # # model_file_name = "cropspot_densenet_model.h5"
+    # # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # # existing_model.connect(task=task)
+    # # if existing_model:
+    # #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    # #     return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -52,6 +53,7 @@ def densenet_train(dataset_name, project_name):
     # img_size = min(img_height, img_width)
     img_size = 224
 
+    batch_size = 64
     batch_size = 64
 
     datagen = ImageDataGenerator(
@@ -75,14 +77,18 @@ def densenet_train(dataset_name, project_name):
 
     x = base_densenet_model.output
     x = GlobalAveragePooling2D()(x)
+    x = Dense(512, kernel_regularizer=L2(0.01))(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(0.2)(x)
     x = Dense(1024, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(0.5)(x)
-    x = Dense(512, kernel_regularizer=L2(0.01))(x)
+    x = Dense(512, kernel_regularizer=L2(0.01), kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    x = Dropout(0.5)(x)
+    x = Dropout(0.2)(x)
     predictions = Dense(num_classes, activation="softmax")(x)
 
     densenet_model = Model(inputs=base_densenet_model.input, outputs=predictions)

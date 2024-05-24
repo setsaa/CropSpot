@@ -5,24 +5,23 @@ def resnet_train(dataset_name, project_name):
     Args:
         preprocessed_dataset_name (str): Name of the preprocessed dataset
         project_name (str): Name of the ClearML project
-        queue_name (str): Name of the ClearML queue for remote execution
 
     Returns:
         ID of the trained model
     """
-    from clearml import Task, Dataset, OutputModel, InputModel
+    from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="ResNet Train Model")
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import matplotlib.pyplot as plt
-    from keras.models import Model, load_model
+    from keras.models import Model
     from keras.callbacks import LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
     from keras.applications import ResNet50V2
     from keras.applications.resnet_v2 import preprocess_input
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from keras.regularizers import L2
     from keras.regularizers import L2
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
@@ -44,15 +43,10 @@ def resnet_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # # Get image size from the first image from the healthy directory
-    # first_category = os.listdir(dataset_path)[0]
-    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    # img_height, img_width, _ = img.shape
-    # img_size = min(img_height, img_width)
     img_size = 224
 
     # Set batch size
+    batch_size = 64
     batch_size = 64
 
     # Data augmentation and preprocessing
@@ -86,9 +80,15 @@ def resnet_train(dataset_name, project_name):
     x = Activation("relu")(x)
     x = Dropout(0.5)(x)
     x = Dense(512, kernel_regularizer=L2(0.01))(x)
+    x = Dense(512, kernel_regularizer=L2(0.01))(x)
+    x = BatchNormalization()(x)
+    x = Activation("relu")(x)
+    x = Dropout(0.2)(x)
+    x = Dense(1024, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(0.5)(x)
+    x = Dropout(0.2)(x)
     predictions = Dense(num_classes, activation="softmax")(x)
 
     # Create model
@@ -105,12 +105,7 @@ def resnet_train(dataset_name, project_name):
                 logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
                 logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
                 logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                logger.report_scalar(
-                    "val_accuracy",
-                    "validation",
-                    iteration=epoch,
-                    value=logs["val_accuracy"],
-                ),
+                logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
             ]
         )
     ]
@@ -118,11 +113,9 @@ def resnet_train(dataset_name, project_name):
     # Train the model
     resnet_model.fit(
         train_generator,
-        # steps_per_epoch=train_generator.samples // batch_size,
         epochs=epochs,
         validation_data=test_generator,
-        # validation_steps=test_generator.samples // batch_size,
-        callbacks=[clearml_log_callbacks, early_stopping],
+        callbacks=[clearml_log_callbacks, early_stopping, learning_rate_reduction],
     )
 
     trained_model_dir = "Trained Models"
@@ -137,7 +130,7 @@ def resnet_train(dataset_name, project_name):
     output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
 
     # Upload the model weights to ClearML
-    output_model.update_weights("Trained Models\cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
+    output_model.update_weights("Trained Models/cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
 
     task.upload_artifact("ResNet Model", artifact_object=model_file_name)
 
@@ -156,12 +149,11 @@ if __name__ == "__main__":
     # Add arguments
     parser.add_argument("--dataset_name", type=str, required=False, default="TomatoDiseaseDatasetV2", help="Name of the preprocessed dataset")
     parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
-    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="Name of the ClearML queue for remote execution")
 
     # Parse the arguments
     args = parser.parse_args()
 
     # Call the function with the parsed arguments
-    model_id = resnet_train(args.dataset_name, args.project_name, args.queue_name)
+    model_id = resnet_train(args.dataset_name, args.project_name)
 
     print(f"Model trained with ID: {model_id}")
