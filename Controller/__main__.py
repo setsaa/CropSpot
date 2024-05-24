@@ -1,9 +1,5 @@
 import argparse
-
-# from pipeline_v2 import create_CropSpot_pipeline
-
 from pipeline import create_CropSpot_pipeline
-
 from clearml import Task
 
 if __name__ == "__main__":
@@ -40,24 +36,24 @@ if __name__ == "__main__":
         help="ClearML queue name",
     )
     parser.add_argument(
-        "--model_path_1",
+        "--model_name_1",
         type=str,
         required=False,
         default="cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_2",
+        "--model_name_2",
         type=str,
         required=False,
         default="cropspot_densenet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_3",
+        "--model_name_3",
         type=str,
         required=False,
-        default="cropspot_CNN_model.h5",
+        default="cropspot_vgg_model.h5",
         help="Local model path",
     )
     parser.add_argument(
@@ -105,9 +101,9 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
-        model_name_1=args.model_path_1,
-        model_name_2=args.model_path_2,
-        model_name_3=args.model_path_3,
+        model_name_1=args.model_name_1,
+        model_name_2=args.model_name_2,
+        model_name_3=args.model_name_3,
         test_dataset=args.test_dataset,
         repo_path=args.repo_path,
         branch=args.branch,

@@ -4,19 +4,6 @@ def compare_models(model_name_1, model_score_1, model_name_2, model_score_2, mod
     task = Task.init(project_name="CropSpot", task_name="Compare Models")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
-    import os
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    import tensorflow as tf
-    from keras.preprocessing.image import ImageDataGenerator
-    from keras.models import Model, load_model
-    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
-    from sklearn.preprocessing import label_binarize
-    from itertools import cycle
-    from math import ceil
-    import pickle as pkl
-
     # Find best models based on the F1 score
     best_model = None
     best_score = 0
