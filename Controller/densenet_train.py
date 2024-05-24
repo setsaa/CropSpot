@@ -5,36 +5,24 @@ def densenet_train(dataset_name, project_name):
     Args:
         dataset_name (str): Name of the preprocessed dataset
         project_name (str): Name of the ClearML project
-        queue_name (str): Name of the ClearML queue for remote execution
 
     Returns:
         ID of the trained model
     """
-
-    from clearml import Task, Dataset, OutputModel, InputModel
+    from clearml import Task, Dataset, OutputModel
 
     task = Task.init(project_name=project_name, task_name="DenseNet Train Model")
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     import matplotlib.pyplot as plt
-    from keras.models import Model, load_model
+    from keras.models import Model
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.regularizers import L2
-    from keras.regularizers import L2
     from keras.applications import DenseNet121
     from keras.applications.densenet import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
-
-    # # # TEMP
-    # # model_file_name = "cropspot_densenet_model.h5"
-    # # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    # # existing_model.connect(task=task)
-    # # if existing_model:
-    # #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-    # #     return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -45,15 +33,7 @@ def densenet_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # # Get image size from the first image from the healthy directory
-    # first_category = os.listdir(dataset_path)[0]
-    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    # img_height, img_width, _ = img.shape
-    # img_size = min(img_height, img_width)
     img_size = 224
-
-    batch_size = 64
     batch_size = 64
 
     datagen = ImageDataGenerator(
@@ -77,18 +57,14 @@ def densenet_train(dataset_name, project_name):
 
     x = base_densenet_model.output
     x = GlobalAveragePooling2D()(x)
-    x = Dense(512, kernel_regularizer=L2(0.01))(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(0.2)(x)
     x = Dense(1024, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x = Dropout(0.5)(x)
-    x = Dense(512, kernel_regularizer=L2(0.01), kernel_regularizer=L2(0.01))(x)
+    x = Dense(512, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    x = Dropout(0.2)(x)
+    x = Dropout(0.5)(x)
     predictions = Dense(num_classes, activation="softmax")(x)
 
     densenet_model = Model(inputs=base_densenet_model.input, outputs=predictions)
@@ -102,23 +78,16 @@ def densenet_train(dataset_name, project_name):
                 logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
                 logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
                 logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                logger.report_scalar(
-                    "val_accuracy",
-                    "validation",
-                    iteration=epoch,
-                    value=logs["val_accuracy"],
-                ),
+                logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
             ]
         )
     ]
 
     densenet_model.fit(
         train_generator,
-        # steps_per_epoch=train_generator.samples // batch_size,
         epochs=epochs,
         validation_data=test_generator,
-        # validation_steps=test_generator.samples // batch_size,
-        callbacks=[clearml_log_callbacks, early_stopping],
+        callbacks=[clearml_log_callbacks, early_stopping, learning_rate_reduction],
     )
 
     trained_model_dir = "Trained Models"
@@ -145,5 +114,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    model_id = densenet_train(args.dataset_name, args.project_name, args.queue_name)
+    model_id = densenet_train(args.dataset_name, args.project_name)
+
     print(f"Model trained with ID: {model_id}")
