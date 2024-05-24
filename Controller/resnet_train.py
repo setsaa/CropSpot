@@ -15,7 +15,7 @@ def resnet_train(dataset_name, project_name):
 
     import os
     import matplotlib.pyplot as plt
-    from keras.models import Model
+    import tensorflow as tf
     from keras.callbacks import LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
     from keras.applications import ResNet50V2
@@ -80,7 +80,7 @@ def resnet_train(dataset_name, project_name):
     predictions = Dense(num_classes, activation="softmax")(x)
 
     # Create model
-    resnet_model = Model(inputs=base_resNet_model.input, outputs=predictions)
+    resnet_model = tf.keras.Model(inputs=base_resNet_model.input, outputs=predictions)
 
     # Compile model
     resnet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
