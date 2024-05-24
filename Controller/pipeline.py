@@ -35,7 +35,7 @@ def create_CropSpot_pipeline(
     from compare_models import compare_models
     from update_model import update_repository
 
-    packages = ["pandas", "numpy", "matplotlib", "seaborn", "tensorflow", "keras", "keras-tuner", "tqdm", "clearml", "scikit-learn"]
+    packages = ["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "keras-tuner", "tqdm", "clearml", "scikit-learn"]
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(name=pipeline_name, project=project_name, add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)

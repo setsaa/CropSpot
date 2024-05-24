@@ -15,7 +15,7 @@ def densenet_train(dataset_name, project_name):
 
     import os
     import matplotlib.pyplot as plt
-    import tensorflow as tf
+    from keras.models import Model
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
@@ -78,15 +78,24 @@ def densenet_train(dataset_name, project_name):
             x = GlobalAveragePooling2D()(x)
 
             # Hyperparameters for the fully connected layers
-            for i in range(hp.Int("num_layers", 1, 3)):
-                x = Dense(units=hp.Int("units_" + str(i), min_value=256, max_value=1024, step=256))(x)
-                x = BatchNormalization()(x)
-                x = Activation("relu")(x)
-                x = Dropout(rate=hp.Float("dropout_" + str(i), min_value=0.0, max_value=0.5, step=0.1))(x)
+            x = Dense(units=hp.Int("units_1", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_1", min_value=0.0, max_value=0.5, step=0.1))(x)
+
+            x = Dense(units=hp.Int("units_2", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_2", min_value=0.0, max_value=0.5, step=0.1))(x)
+
+            x = Dense(units=hp.Int("units_3", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_3", min_value=0.0, max_value=0.5, step=0.1))(x)
 
             predictions = Dense(self.num_classes, activation="softmax")(x)
 
-            model = tf.keras.Model(inputs=base_densenet_model.input, outputs=predictions)
+            model = Model(inputs=base_densenet_model.input, outputs=predictions)
 
             # Hyperparameter: Optimizer selection
             optimizer_name = hp.Choice("optimizer", ["adam", "rmsprop", "sgd"])
@@ -107,25 +116,12 @@ def densenet_train(dataset_name, project_name):
 
     tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"densenet_keras_tuner", project_name=f"densenet_tuning")
 
+    # Search for the best hyperparameters
     tuner.search_space_summary()
 
     logger = task.get_logger()
 
-    tuner.search(
-        train_generator,
-        epochs=10,  # Shorter epochs for the hyperparameter search phase
-        validation_data=test_generator,
-        callbacks=[
-            LambdaCallback(
-                on_epoch_end=lambda epoch, logs: [
-                    logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
-                    logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
-                    logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                    logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
-                ]
-            )
-        ],
-    )
+    tuner.search(train_generator, epochs=10, validation_data=test_generator)
 
     # Get the optimal hyperparameters
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -134,14 +130,13 @@ def densenet_train(dataset_name, project_name):
     # Build the model with the best hyperparameters and train it on the data for 50 epochs
     densenet_model = tuner.hypermodel.build(best_hps)
 
-    epochs = 50
+    epochs = 60
     densenet_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
         callbacks=[
             EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True),
-            ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001),
             LambdaCallback(
                 on_epoch_end=lambda epoch, logs: [
                     logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
