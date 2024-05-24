@@ -9,7 +9,7 @@ def vgg_train(dataset_name, project_name):
     Returns:
         ID of the trained model
     """
-    from clearml import Task, Dataset, OutputModel
+    from clearml import Task, Dataset, OutputModel, InputModel
 
     task = Task.init(project_name=project_name, task_name="VGG Train Model")
 
@@ -24,6 +24,14 @@ def vgg_train(dataset_name, project_name):
     from keras.applications.vgg19 import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
+    # # TEMP
+    # model_file_name = "cropspot_vgg_model.h5"
+    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # existing_model.connect(task=task)
+    # if existing_model:
+    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    #     return existing_model.id
+
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
     dataset = Dataset.get(dataset_name=prep_dataset_name)
@@ -34,6 +42,7 @@ def vgg_train(dataset_name, project_name):
         dataset.get_mutable_local_copy(dataset_path)
 
     img_size = 224
+
     batch_size = 64
 
     datagen = ImageDataGenerator(
@@ -46,9 +55,9 @@ def vgg_train(dataset_name, project_name):
 
     epochs = 200
     num_classes = len(train_generator.class_indices)
-    optimizer = Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999)
-    early_stopping = EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True)
-    learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=3, verbose=1, factor=0.75, min_lr=0.00001)
+    optimizer = Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999)
+    early_stopping = EarlyStopping(monitor="val_accuracy", patience=25, min_delta=0.001, restore_best_weights=True)
+    learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=6, verbose=1, factor=0.5, min_lr=0.00001)
 
     base_vgg_model = VGG19(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
 
@@ -60,11 +69,7 @@ def vgg_train(dataset_name, project_name):
     x = Dense(1024, kernel_regularizer=L2(0.01))(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    x = Dropout(0.5)(x)
-    x = Dense(512, kernel_regularizer=L2(0.01))(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(0.5)(x)
+    x = Dropout(0.2)(x)
     predictions = Dense(num_classes, activation="softmax")(x)
 
     vgg_model = Model(inputs=base_vgg_model.input, outputs=predictions)
