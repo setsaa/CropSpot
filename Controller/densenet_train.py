@@ -26,13 +26,13 @@ def densenet_train(dataset_name, project_name):
     from keras.applications.densenet import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
-    # # TEMP
-    # model_file_name = "cropspot_densenet_model.h5"
-    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    # existing_model.connect(task=task)
-    # if existing_model:
-    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-    #     return existing_model.id
+    # TEMP
+    model_file_name = "cropspot_densenet_model.h5"
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    existing_model.connect(task=task)
+    if existing_model:
+        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+        return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -82,6 +82,7 @@ def densenet_train(dataset_name, project_name):
     densenet_model = Model(inputs=base_densenet_model.input, outputs=predictions)
     densenet_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
+    # Manual logging within model.fit() callback
     logger = task.get_logger()
     clearml_log_callbacks = [
         LambdaCallback(
@@ -89,7 +90,12 @@ def densenet_train(dataset_name, project_name):
                 logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
                 logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
                 logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
+                logger.report_scalar(
+                    "val_accuracy",
+                    "validation",
+                    iteration=epoch,
+                    value=logs["val_accuracy"],
+                ),
             ]
         )
     ]
@@ -110,9 +116,10 @@ def densenet_train(dataset_name, project_name):
 
     output_model = OutputModel(task=task, name="cropspot_densenet_model", framework="Tensorflow")
     output_model.update_weights(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
-    output_model.publish()
 
     task.upload_artifact("DenseNet Model", artifact_object="cropspot_densenet_model.h5")
+
+    output_model.publish()
 
     return output_model.id
 

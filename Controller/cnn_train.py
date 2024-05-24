@@ -25,13 +25,13 @@ def custom_cnn_train(dataset_name, project_name):
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
 
-    # # TEMP
-    # model_file_name = "cropspot_CNN_model.h5"
-    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    # existing_model.connect(task=task)
-    # if existing_model:
-    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-    #     return existing_model.id
+    # TEMP
+    model_file_name = "cropspot_CNN_model.h5"
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    existing_model.connect(task=task)
+    if existing_model:
+        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+        return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -42,13 +42,13 @@ def custom_cnn_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # Get image size from the first image from the healthy directory
-    first_category = os.listdir(dataset_path)[0]
-    first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    img_height, img_width, _ = img.shape
-    img_size = min(img_height, img_width)
-    # img_size = 224
+    # # Get image size from the first image from the healthy directory
+    # first_category = os.listdir(dataset_path)[0]
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
+    img_size = 224
 
     batch_size = 32
 
@@ -69,13 +69,13 @@ def custom_cnn_train(dataset_name, project_name):
 
     model = Sequential(
         [
-            Conv2D(32, (3, 3), activation="relu", input_shape=(img_size, img_size, 3)),
+            Conv2D(32, (3, 3), activation="relu", padding="same", input_shape=(img_size, img_size, 3)),
             MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(64, (3, 3), activation="relu"),
+            Conv2D(64, (3, 3), padding="same", activation="relu"),
             MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(128, (3, 3), activation="relu"),
+            Conv2D(128, (3, 3), padding="same", activation="relu"),
             MaxPooling2D(pool_size=(2, 2)),
-            Conv2D(256, (3, 3), activation="relu"),
+            Conv2D(256, (3, 3), padding="same", activation="relu"),
             MaxPooling2D(pool_size=(2, 2)),
             Flatten(),
             Dense(512, activation="relu"),
@@ -87,6 +87,7 @@ def custom_cnn_train(dataset_name, project_name):
     cnn_model = model
     cnn_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
+    # Manual logging within model.fit() callback
     logger = task.get_logger()
     clearml_log_callbacks = [
         LambdaCallback(
@@ -94,7 +95,12 @@ def custom_cnn_train(dataset_name, project_name):
                 logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
                 logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
                 logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
+                logger.report_scalar(
+                    "val_accuracy",
+                    "validation",
+                    iteration=epoch,
+                    value=logs["val_accuracy"],
+                ),
             ]
         )
     ]
@@ -116,9 +122,10 @@ def custom_cnn_train(dataset_name, project_name):
 
     output_model = OutputModel(task=task, name="cropspot_CNN_model", framework="Tensorflow")
     output_model.update_weights(os.path.join(trained_model_dir, "cropspot_CNN_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
-    output_model.publish()
 
     task.upload_artifact("CNN Model", artifact_object="cropspot_CNN_model.h5")
+
+    output_model.publish()
 
     return output_model.id
 

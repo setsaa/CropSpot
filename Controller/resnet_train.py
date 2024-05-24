@@ -26,13 +26,13 @@ def resnet_train(dataset_name, project_name):
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-    # # TEMP
-    # model_file_name = "cropspot_resnet_model.h5"
-    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    # existing_model.connect(task=task)
-    # if existing_model:
-    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-    #     return existing_model.id
+    # TEMP
+    model_file_name = "cropspot_resnet_model.h5"
+    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    existing_model.connect(task=task)
+    if existing_model:
+        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+        return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name
@@ -134,10 +134,10 @@ def resnet_train(dataset_name, project_name):
     # Upload the model weights to ClearML
     output_model.update_weights("Trained Models\cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
 
+    task.upload_artifact("ResNet Model", artifact_object=model_file_name)
+
     # Make sure the model is accessible
     output_model.publish()
-
-    task.upload_artifact("ResNet Model", artifact_object=model_file_name)
 
     return output_model.id
 

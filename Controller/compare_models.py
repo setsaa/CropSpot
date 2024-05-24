@@ -39,9 +39,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Compare the published models")
 
     # Add arguments
-    parser.add_argument("--model_path_1", type=str, required=False, default="Trained Models/cropspot_resnet_model.h5", help="Path to the 1st trained model file")
-    parser.add_argument("--model_path_2", type=str, required=False, default="Trained Models/cropspot_densenet_model.h5", help="Path to the 2nd trained model file")
-    parser.add_argument("--model_path_3", type=str, required=False, default="Trained Models/cropspot_CNN_model.h5", help="Path to the 3rd trained model file")
+    parser.add_argument("--model_path_1", type=str, required=False, default="cropspot_resnet_model.h5", help="Path to the 1st trained model file")
+    parser.add_argument("--model_path_2", type=str, required=False, default="cropspot_densenet_model.h5", help="Path to the 2nd trained model file")
+    parser.add_argument("--model_path_3", type=str, required=False, default="cropspot_CNN_model.h5", help="Path to the 3rd trained model file")
     parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="ClearML queue name")
 
     args = parser.parse_args()
