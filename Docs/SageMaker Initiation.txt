@@ -6,8 +6,8 @@ pip install clearml-agent
 
 clearml-agent init
 
-clearml-agent daemon --queue "helldiver_2" --detached
+clearml-agent daemon --queue "helldiver" --detached
 
-clearml-agent daemon --queue "helldiver_2" --foreground
+clearml-agent daemon --queue "helldiver" --foreground
 
 clearml-agent daemon --queue "helldiver" --detached --stop
