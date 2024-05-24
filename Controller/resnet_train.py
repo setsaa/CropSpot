@@ -107,7 +107,8 @@ def resnet_train(dataset_name, project_name):
 
     hypermodel = ResNetHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
 
-    tuner = Hyperband(hypermodel, objective="val_accuracy", max_trials=10, executions_per_trial=2, directory="resnet_keras_tuner", project_name="resnet_tuning")
+    # Setup Hyperband tuner
+    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"resnet_keras_tuner", project_name=f"resnet_tuning")
 
     tuner.search_space_summary()
 

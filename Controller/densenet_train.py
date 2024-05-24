@@ -105,7 +105,7 @@ def densenet_train(dataset_name, project_name):
 
     hypermodel = DenseNetHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
 
-    tuner = Hyperband(hypermodel, objective="val_accuracy", max_trials=10, executions_per_trial=2, directory="densenet_keras_tuner", project_name="densenet_tuning")
+    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"densenet_keras_tuner", project_name=f"densenet_tuning")
 
     tuner.search_space_summary()
 
