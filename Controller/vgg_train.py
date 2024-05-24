@@ -15,7 +15,7 @@ def vgg_train(dataset_name, project_name):
 
     import os
     import matplotlib.pyplot as plt
-    from keras.models import Model
+    import tensorflow as tf
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
@@ -86,7 +86,7 @@ def vgg_train(dataset_name, project_name):
 
             predictions = Dense(self.num_classes, activation="softmax")(x)
 
-            model = Model(inputs=base_vgg_model.input, outputs=predictions)
+            model = tf.keras.Model(inputs=base_vgg_model.input, outputs=predictions)
 
             # Hyperparameter: Optimizer selection
             optimizer_name = hp.Choice("optimizer", ["adam", "rmsprop", "sgd"])
