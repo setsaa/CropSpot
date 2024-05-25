@@ -243,3 +243,4 @@ def create_CropSpot_pipeline(
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
     pipeline.start(queue=queue_name)
+    # pipeline.start_locally(run_pipeline_steps_locally=True)
