@@ -15,13 +15,15 @@ def vgg_train(dataset_name, project_name):
 
     import os
     import matplotlib.pyplot as plt
-    import tensorflow as tf
+    from keras.models import Model
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
     from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.regularizers import L2
+    from keras.optimizers import Adam, RMSprop, SGD
+    from keras_tuner import HyperModel, HyperParameters
+    from keras_tuner.tuners import Hyperband
     from keras.applications import VGG19
-    from keras.applications.vgg19 import preprocess_input
     from keras.preprocessing.image import ImageDataGenerator
 
     # # TEMP
@@ -41,58 +43,109 @@ def vgg_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
+    # first_category = os.listdir(dataset_path)[0]
+    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
+    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
+    # img_height, img_width, _ = img.shape
+    # img_size = min(img_height, img_width)
     img_size = 224
 
     batch_size = 64
 
     datagen = ImageDataGenerator(
-        preprocessing_function=preprocess_input,
+        rescale=1.0 / 255,
         validation_split=0.2,
     )
 
     train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
     test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="validation")
 
-    epochs = 200
     num_classes = len(train_generator.class_indices)
-    optimizer = Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999)
-    early_stopping = EarlyStopping(monitor="val_accuracy", patience=25, min_delta=0.001, restore_best_weights=True)
-    learning_rate_reduction = ReduceLROnPlateau(monitor="val_accuracy", patience=6, verbose=1, factor=0.5, min_lr=0.00001)
 
-    base_vgg_model = VGG19(weights="imagenet", include_top=False, input_shape=(img_size, img_size, 3))
+    class VggHyperModel(HyperModel):
+        def __init__(self, input_shape, num_classes):
+            self.input_shape = input_shape
+            self.num_classes = num_classes
 
-    for layer in base_vgg_model.layers:
-        layer.trainable = False
+        def build(self, hp):
+            base_vgg_model = VGG19(weights="imagenet", include_top=False, input_shape=self.input_shape)
 
-    x = base_vgg_model.output
-    x = GlobalAveragePooling2D()(x)
-    x = Dense(1024, kernel_regularizer=L2(0.01))(x)
-    x = BatchNormalization()(x)
-    x = Activation("relu")(x)
-    x = Dropout(0.2)(x)
-    predictions = Dense(num_classes, activation="softmax")(x)
+            # Freeze the base model
+            for layer in base_vgg_model.layers:
+                layer.trainable = False
 
-    vgg_model = tf.keras.Model(inputs=base_vgg_model.input, outputs=predictions)
-    vgg_model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+            x = base_vgg_model.output
+            x = GlobalAveragePooling2D()(x)
 
-    # Manual logging within model.fit() callback
+            # Hyperparameters for the fully connected layers
+            x = Dense(units=hp.Int("units_1", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_1", min_value=0.0, max_value=0.5, step=0.1))(x)
+
+            x = Dense(units=hp.Int("units_2", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_2", min_value=0.0, max_value=0.5, step=0.1))(x)
+
+            x = Dense(units=hp.Int("units_3", min_value=128, max_value=1024, step=128))(x)
+            x = BatchNormalization()(x)
+            x = Activation("relu")(x)
+            x = Dropout(rate=hp.Float("dropout_3", min_value=0.0, max_value=0.5, step=0.1))(x)
+
+            predictions = Dense(self.num_classes, activation="softmax")(x)
+
+            model = Model(inputs=base_vgg_model.input, outputs=predictions)
+
+            # Hyperparameter: Optimizer selection
+            optimizer_name = hp.Choice("optimizer", ["adam", "rmsprop", "sgd"])
+            learning_rate = hp.Float("learning_rate", min_value=1e-5, max_value=1e-2, sampling="LOG")
+
+            if optimizer_name == "adam":
+                optimizer = Adam(learning_rate=learning_rate)
+            elif optimizer_name == "rmsprop":
+                optimizer = RMSprop(learning_rate=learning_rate)
+            elif optimizer_name == "sgd":
+                optimizer = SGD(learning_rate=learning_rate)
+
+            model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
+
+            return model
+
+    hypermodel = VggHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
+
+    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"vgg_keras_tuner", project_name=f"vgg_tuning")
+
+    tuner.search_space_summary()
+
     logger = task.get_logger()
-    clearml_log_callbacks = [
-        LambdaCallback(
-            on_epoch_end=lambda epoch, logs: [
-                logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
-                logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
-                logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
-                logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
-            ]
-        )
-    ]
 
+    # Search for the best hyperparameters
+    tuner.search(train_generator, epochs=10, validation_data=test_generator)
+
+    # Get the optimal hyperparameters
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    print(f"Best hyperparameters: {best_hps.values}")
+
+    # Build the model with the best hyperparameters and train it on the data for 50 epochs
+    vgg_model = tuner.hypermodel.build(best_hps)
+
+    epochs = 60
     vgg_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
-        callbacks=[clearml_log_callbacks, early_stopping, learning_rate_reduction],
+        callbacks=[
+            EarlyStopping(monitor="val_accuracy", patience=10, min_delta=0.001, restore_best_weights=True),
+            LambdaCallback(
+                on_epoch_end=lambda epoch, logs: [
+                    logger.report_scalar("loss", "train", iteration=epoch, value=logs["loss"]),
+                    logger.report_scalar("accuracy", "train", iteration=epoch, value=logs["accuracy"]),
+                    logger.report_scalar("val_loss", "validation", iteration=epoch, value=logs["val_loss"]),
+                    logger.report_scalar("val_accuracy", "validation", iteration=epoch, value=logs["val_accuracy"]),
+                ]
+            ),
+        ],
     )
 
     trained_model_dir = "Trained Models"
