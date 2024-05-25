@@ -1,4 +1,4 @@
-def preprocess_dataset(dataset_name, project_name, queue_name):
+def preprocess_dataset(dataset_name, project_name):
     """
     Preprocess images in the raw dataset and upload the preprocessed images to ClearML.
 
@@ -10,35 +10,39 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
     Returns:
         ID and name of the processed dataset.
     """
+    from clearml import Dataset, Task
+
+    task = Task.init(project_name=project_name, task_name="Preprocess Uploaded Data")
+    # task.execute_remotely(queue_name=queue_name, exit_process=True)
+
     import os
     import logging
     import numpy as np
     import shutil
     from PIL import Image
     from pathlib import Path
-    from clearml import Dataset, Task
 
-    task = Task.init(project_name=project_name, task_name="Dataset Preprocessing", task_type=Task.TaskTypes.data_processing)
+    # TEMP CHANGE
+    prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+    if prep_dataset:
+        print(f"Preprocessed dataset '{dataset_name}_preprocessed' already exists in project '{project_name}'.")
+        return prep_dataset.id, prep_dataset.name
 
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=dataset_name)
 
     # Check if the preprocessed dataset is already downloaded. If not, download it and preprocess the images.
-    preprocessed_dir = Path("Dataset/Preprocessed")
-    if not preprocessed_dir.exists():
-        print("Downloading the dataset...")
-        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
-    else:
-        print("Dataset already downloaded")
+    preprocessed_dir = Path(f"Dataset/{dataset_name}_preprocessed")
+    if preprocessed_dir.exists():
+        print("Dataset already exists")
 
         # Remove the old preprocessed directory
         print("Removing the old preprocessed directory...")
         shutil.rmtree(preprocessed_dir)
         preprocessed_dir.mkdir()
 
-        # Download the dataset
-        print("Downloading latest dataset...")
-        raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
+    print("Downloading the dataset...")
+    raw_dataset.get_mutable_local_copy(str(preprocessed_dir))
 
     # New preprocessed directory
     print("Processing images...")
@@ -48,7 +52,7 @@ def preprocess_dataset(dataset_name, project_name, queue_name):
         # Remove non-jpg files
         count = 0
         for file in os.listdir(category_path):
-            if not file.endswith(".jpg"):
+            if not file.lower().endswith(".jpg"):
                 os.remove(os.path.join(category_path, file))
                 count += 1
         print(f"Removed {count} non-jpg files.")
@@ -104,7 +108,7 @@ if __name__ == "__main__":
 
     # Setup arg parse
     parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
-    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDataset", help="Name of the raw dataset")
+    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDatasetV2", help="Name of the raw dataset")
     parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
     parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
 
