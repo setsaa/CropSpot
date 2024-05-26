@@ -26,7 +26,7 @@ jobs:
         - name: ClearML initialization
           run: |
             cat $CLEARML_CONFIG_FILE 
-            clearml-init --config $CLEARML_CONFIG_FILE
+            clearml-init
         - name: Start the task
           id: launch_task
           run: |
