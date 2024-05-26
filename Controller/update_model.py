@@ -1,11 +1,10 @@
 def update_repository(repo_path, branch_name, commit_message, project_name, model_id, repo_url, deploy_key_path):
-    from clearml import Task, Model
-
-    task = Task.init(project_name=project_name, task_name="Update Model Weights in GitHub Repository")
-
     import os
+    from clearml import Task
     from git import Repo, GitCommandError
     from keras.models import load_model, save_model
+
+    task = Task.init(project_name=project_name, task_name="Update Model Weights in GitHub Repository")
 
     def get_model(model_id):
         from clearml import InputModel

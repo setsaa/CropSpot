@@ -9,22 +9,18 @@ def densenet_train(dataset_name, project_name):
     Returns:
         ID of the trained model
     """
-    from clearml import Task, Dataset, OutputModel, InputModel
-
-    task = Task.init(project_name=project_name, task_name="DenseNet Train Model")
-
     import os
-    import matplotlib.pyplot as plt
+    from clearml import Task, Dataset, OutputModel, InputModel
     from keras.models import Model
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from keras.optimizers import Adam
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
-    from keras.regularizers import L2
     from keras.optimizers import Adam, RMSprop, SGD
     from keras_tuner import HyperModel, HyperParameters
     from keras_tuner.tuners import Hyperband
     from keras.applications import DenseNet121
     from keras.preprocessing.image import ImageDataGenerator
+
+    task = Task.init(project_name=project_name, task_name="DenseNet Train Model")
 
     # TEMP
     model_file_name = "cropspot_densenet_model.h5"
@@ -52,8 +48,24 @@ def densenet_train(dataset_name, project_name):
         validation_split=0.2,
     )
 
-    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
-    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="validation")
+    train_generator = datagen.flow_from_directory(
+        dataset_path,
+        target_size=(img_size, img_size),
+        batch_size=batch_size,
+        class_mode="categorical",
+        shuffle=True,
+        seed=42,
+        subset="training"
+    )
+    test_generator = datagen.flow_from_directory(
+        dataset_path,
+        target_size=(img_size, img_size),
+        batch_size=batch_size,
+        class_mode="categorical",
+        shuffle=True,
+        seed=42,
+        subset="validation"
+    )
 
     num_classes = len(train_generator.class_indices)
 
@@ -102,6 +114,8 @@ def densenet_train(dataset_name, project_name):
                 optimizer = RMSprop(learning_rate=learning_rate)
             elif optimizer_name == "sgd":
                 optimizer = SGD(learning_rate=learning_rate)
+            else:
+                raise Exception(f"Illegal optimizer name given: {optimizer_name}")
 
             model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
@@ -109,7 +123,15 @@ def densenet_train(dataset_name, project_name):
 
     hypermodel = DenseNetHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
 
-    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"densenet_keras_tuner", project_name=f"densenet_tuning")
+    tuner = Hyperband(
+        hypermodel,
+        objective="val_accuracy",
+        max_epochs=10,
+        factor=3,
+        hyperband_iterations=1,
+        directory=f"densenet_keras_tuner",
+        project_name=f"densenet_tuning"
+    )
 
     # Search for the best hyperparameters
     tuner.search_space_summary()
@@ -149,7 +171,11 @@ def densenet_train(dataset_name, project_name):
     densenet_model.save(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"))
 
     output_model = OutputModel(task=task, name="cropspot_densenet_model", framework="Tensorflow")
-    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_densenet_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
+    output_model.update_weights(
+        os.path.join(trained_model_dir, "cropspot_densenet_model.h5"),
+        upload_uri="https://files.clear.ml",
+        auto_delete_file=False
+    )
 
     task.upload_artifact("DenseNet Model", artifact_object="cropspot_densenet_model.h5")
 

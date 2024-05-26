@@ -5,22 +5,19 @@ def preprocess_dataset(dataset_name, project_name):
     Args:
         dataset_name: Name of the raw dataset.
         project_name: Name of the project for the processed dataset.
-        queue_name: Name of the queue for remote execution.
 
     Returns:
         ID and name of the processed dataset.
     """
     from clearml import Dataset, Task
-
-    task = Task.init(project_name=project_name, task_name="Preprocess Uploaded Data")
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
-
     import os
     import logging
     import numpy as np
     import shutil
     from PIL import Image
     from pathlib import Path
+
+    task = Task.init(project_name=project_name, task_name="Preprocess Uploaded Data")
 
     # TEMP CHANGE
     prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")

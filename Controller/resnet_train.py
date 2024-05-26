@@ -3,28 +3,25 @@ def resnet_train(dataset_name, project_name):
     Train the CropSpot model using the preprocessed dataset.
 
     Args:
-        preprocessed_dataset_name (str): Name of the preprocessed dataset
+        dataset_name (str): Name of the preprocessed dataset
         project_name (str): Name of the ClearML project
 
     Returns:
         ID of the trained model
     """
-    from clearml import Task, Dataset, OutputModel, InputModel
-
-    task = Task.init(project_name=project_name, task_name="ResNet Train Model")
-
     import os
-    import matplotlib.pyplot as plt
+    from clearml import Task, Dataset, OutputModel, InputModel
     from keras.models import Model
     from keras.callbacks import LambdaCallback
     from keras.preprocessing.image import ImageDataGenerator
     from keras.applications import ResNet50V2
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
-    from keras.regularizers import L2
     from keras.optimizers import Adam, RMSprop, SGD
     from keras_tuner import HyperModel, HyperParameters
     from keras_tuner.tuners import Hyperband
     from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+
+    task = Task.init(project_name=project_name, task_name="ResNet Train Model")
 
     # TEMP
     model_file_name = "cropspot_resnet_model.h5"
@@ -54,8 +51,24 @@ def resnet_train(dataset_name, project_name):
         validation_split=0.2,
     )
 
-    train_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="training")
-    test_generator = datagen.flow_from_directory(dataset_path, target_size=(img_size, img_size), batch_size=batch_size, class_mode="categorical", shuffle=True, seed=42, subset="validation")
+    train_generator = datagen.flow_from_directory(
+        dataset_path,
+        target_size=(img_size, img_size),
+        batch_size=batch_size,
+        class_mode="categorical",
+        shuffle=True,
+        seed=42,
+        subset="training"
+    )
+    test_generator = datagen.flow_from_directory(
+        dataset_path,
+        target_size=(img_size, img_size),
+        batch_size=batch_size,
+        class_mode="categorical",
+        shuffle=True,
+        seed=42,
+        subset="validation"
+    )
 
     num_classes = len(train_generator.class_indices)
 
@@ -65,13 +78,13 @@ def resnet_train(dataset_name, project_name):
             self.num_classes = num_classes
 
         def build(self, hp):
-            base_resNet_model = ResNet50V2(weights="imagenet", include_top=False, input_shape=self.input_shape)
+            base_resnet_model = ResNet50V2(weights="imagenet", include_top=False, input_shape=self.input_shape)
 
             # Freeze the base model
-            for layer in base_resNet_model.layers:
+            for layer in base_resnet_model.layers:
                 layer.trainable = False
 
-            x = base_resNet_model.output
+            x = base_resnet_model.output
             x = GlobalAveragePooling2D()(x)
 
             # Hyperparameters for the fully connected layers
@@ -92,7 +105,7 @@ def resnet_train(dataset_name, project_name):
 
             predictions = Dense(self.num_classes, activation="softmax")(x)
 
-            model = Model(inputs=base_resNet_model.input, outputs=predictions)
+            model = Model(inputs=base_resnet_model.input, outputs=predictions)
 
             # Hyperparameter: Optimizer selection
             optimizer_name = hp.Choice("optimizer", ["adam", "rmsprop", "sgd"])
@@ -104,6 +117,8 @@ def resnet_train(dataset_name, project_name):
                 optimizer = RMSprop(learning_rate=learning_rate)
             elif optimizer_name == "sgd":
                 optimizer = SGD(learning_rate=learning_rate)
+            else:
+                raise Exception(f"Illegal optimizer name given: {optimizer_name}")
 
             model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"])
 
@@ -112,7 +127,15 @@ def resnet_train(dataset_name, project_name):
     hypermodel = ResNetHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
 
     # Setup Hyperband tuner
-    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"resnet_keras_tuner", project_name=f"resnet_tuning")
+    tuner = Hyperband(
+        hypermodel,
+        objective="val_accuracy",
+        max_epochs=10,
+        factor=3,
+        hyperband_iterations=1,
+        directory=f"resnet_keras_tuner",
+        project_name=f"resnet_tuning"
+    )
 
     tuner.search_space_summary()
 
@@ -158,7 +181,8 @@ def resnet_train(dataset_name, project_name):
     output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
 
     # Upload the model weights to ClearML
-    output_model.update_weights("Trained Models/cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
+    output_model.update_weights(
+        "Trained Models/cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
 
     task.upload_artifact("ResNet Model", artifact_object=model_file_name)
 

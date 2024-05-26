@@ -9,6 +9,8 @@ clearml = "*"
 clearml-agent = "*"
 tqdm = "*"
 matplotlib = "*"
+numpy = "*"
+pillow = "*"
 
 [dev-packages]
 

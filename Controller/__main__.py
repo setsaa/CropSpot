@@ -1,6 +1,6 @@
 import argparse
-from pipeline import create_CropSpot_pipeline
-from clearml import Task
+from pipeline import create_cropspot_pipeline
+
 
 if __name__ == "__main__":
     # Create the parser
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call the function with the parsed arguments
-    create_CropSpot_pipeline(
+    create_cropspot_pipeline(
         pipeline_name=args.pipeline_name,
         project_name=args.project_name,
         dataset_name=args.dataset_name,
