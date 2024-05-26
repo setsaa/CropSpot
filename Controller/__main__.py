@@ -67,14 +67,14 @@ if __name__ == "__main__":
         "--repo_path",
         type=str,
         required=False,
-        default=".",
+        default="cropspot_app",
         help="Path to the local Git repository",
     )
     parser.add_argument(
         "--branch",
         type=str,
         required=False,
-        default="CROP-28-AUTOMATED",
+        default="main",
         help="The branch to commit and push changes to",
     )
     parser.add_argument(
@@ -88,14 +88,13 @@ if __name__ == "__main__":
         "--repo_url",
         type=str,
         required=False,
-        default="",
+        default="https://github.com/AI-Studio-Helldiver/Cropspot_App",
         help="Repository URL",
     )
     parser.add_argument(
         "--deploy_key_path",
-        type=str,
         required=False,
-        default="",
+        default="my-deploy-key",
         help="Path to the SSH deploy key",
     )
 

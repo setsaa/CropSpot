@@ -230,11 +230,11 @@ def create_CropSpot_pipeline(
         function=update_repository,
         function_kwargs=dict(
             model_id="${Model_Comparison.best_model_id}",
+            project_name="${pipeline.project_name}",
+            repo_url="${pipeline.repo_url}",
             repo_path="${pipeline.repo_path}",
             branch_name="${pipeline.branch}",
             commit_message="${pipeline.commit_message}",
-            project_name="${pipeline.project_name}",
-            repo_url="${pipeline.repo_url}",
             deploy_key_path="${pipeline.deploy_key_path}",
         ),
         task_type=Task.TaskTypes.service,
@@ -246,4 +246,5 @@ def create_CropSpot_pipeline(
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
+
     pipeline.start(queue=queue_name)

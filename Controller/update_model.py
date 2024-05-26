@@ -2,7 +2,6 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
     from clearml import Task, Model
 
     task = Task.init(project_name=project_name, task_name="Update Model Weights in GitHub Repository")
-    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     from git import Repo, GitCommandError
@@ -11,7 +10,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
     def get_model(model_id):
         from clearml import InputModel
 
-        input_model = InputModel(model_id=model_id, project=project_name, only_published=True)
+        input_model = InputModel(model_id=model_id)
         input_model.connect(task=task)
         local_model = input_model.get_local_copy()
 
@@ -27,6 +26,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         repo_path = f"{repo_name}_clone"
         if os.path.exists(repo_path):
             import shutil
+
             shutil.rmtree(repo_path)
         try:
             repo = Repo.clone_from(repo_url, repo_path, branch=branch, single_branch=True)
@@ -79,7 +79,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         # Fetch the trained model
         model_path = get_model(model_id)
         print(f"Model path obtained: {model_path}")
-        
+
         # Update model file and push changes
         update_model_file(repo, model_path)
         commit_and_push(repo, branch_name, commit_message)
@@ -87,33 +87,3 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         cleanup_repo(repo_path)
 
     print(f"Pushed changes to remote repository on branch: {branch_name}")
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Automate the process of committing and pushing changes.")
-
-    # Add arguments
-    parser.add_argument("--repo_url", required=True, help="Repository URL")
-    parser.add_argument("--repo_path", required=False, default="", help="Path to the local Git repository")
-    parser.add_argument("--branch", required=False, default="CROP-28-AUTOMATED", help="The branch to commit and push changes to")
-    parser.add_argument("--commit_message", required=False, default="Automated commit of model changes", help="Commit message")
-    parser.add_argument("--project_name", required=False, default="CropSpot", help="Name of the ClearML project")
-    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="ClearML queue name")
-    parser.add_argument("--deploy_key_path", required=True, help="Path to the SSH deploy key")
-    parser.add_argument("--model_id", type=str, required=True, help="The best model ID from ClearML")
-
-    args = parser.parse_args()
-
-    update_repository(
-        repo_path=args.repo_path,
-        branch_name=args.branch,
-        commit_message=args.commit_message,
-        project_name=args.project_name,
-        queue_name=args.queue_name,
-        model_id=args.model_id,
-        repo_url=args.repo_url,
-        deploy_key_path=args.deploy_key_path,
-    )
