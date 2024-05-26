@@ -2,7 +2,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
     from clearml import Task, Model
 
     task = Task.init(project_name=project_name, task_name="Update Model Weights in GitHub Repository")
-    # task.execute_remotely(queue_name=queue_name, exit_process=True)
+    task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     from git import Repo, GitCommandError
@@ -23,39 +23,40 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     def clone_repo(repo_url, branch, deploy_key_path):
         configure_ssh_key(deploy_key_path)
-        repo_path = repo_url.split("/")[-1].split(".git")[0]
+        repo_name = repo_url.split("/")[-1].split(".git")[0]
+        repo_path = f"{repo_name}_clone"
+        if os.path.exists(repo_path):
+            import shutil
+            shutil.rmtree(repo_path)
         try:
             repo = Repo.clone_from(repo_url, repo_path, branch=branch, single_branch=True)
-            print(repo_path)
+            print(f"Cloned repository to path: {repo_path}")
             return repo, repo_path
         except GitCommandError as e:
             print(f"Failed to clone repository: {e}")
             exit(1)
 
-    def ensure_archive_dir(repo):
-        archive_path = os.path.join(repo.working_tree_dir, "weights", "archive")
-        os.makedirs(archive_path, exist_ok=True)
-
     def archive_existing_model(repo):
         import datetime
 
-        weights_path = os.path.join(repo.working_tree_dir, "weights")
-        model_file = os.path.join(weights_path, "model.h5")
+        model_file = os.path.join(repo.working_tree_dir, "model.h5")
         if os.path.exists(model_file):
+            archive_dir = os.path.join(repo.working_tree_dir, "archive")
+            os.makedirs(archive_dir, exist_ok=True)
             today = datetime.date.today().strftime("%Y%m%d")
-            archived_model_file = os.path.join(weights_path, "archive", f"model-{today}.h5")
+            archived_model_file = os.path.join(archive_dir, f"model-{today}.h5")
             os.rename(model_file, archived_model_file)
             return archived_model_file
+        return None
 
     def update_model_file(repo, model_path):
         import shutil
 
-        weights_path = os.path.join(repo.working_tree_dir, "weights")
-        ensure_archive_dir(repo)
         archived_model_file = archive_existing_model(repo)
-        target_model_path = os.path.join(weights_path, "model.h5")
+        target_model_path = os.path.join(repo.working_tree_dir, "model.h5")
         shutil.move(model_path, target_model_path)
-        repo.index.add([archived_model_file])
+        if archived_model_file:
+            repo.index.add([archived_model_file])
         repo.index.add([target_model_path])
 
     def commit_and_push(repo, branch, commit_message):
@@ -77,7 +78,8 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
     try:
         # Fetch the trained model
         model_path = get_model(model_id)
-
+        print(f"Model path obtained: {model_path}")
+        
         # Update model file and push changes
         update_model_file(repo, model_path)
         commit_and_push(repo, branch_name, commit_message)
