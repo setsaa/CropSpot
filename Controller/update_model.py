@@ -8,13 +8,9 @@ def update_repository(repo_path, branch_name, commit_message, project_name, queu
     from git import Repo, GitCommandError
 
     def get_model(model_id):
-        from clearml import InputModel
-
-        input_model = InputModel(model_id=model_id, project=project_name, only_published=True)
-        input_model.connect(task=task)
-        local_model = input_model.get_local_copy()
-
-        local_model.save("model.h5")
+        input_model = Model(model_id=model_id)
+        local_model_path = input_model.get_local_copy()
+        return local_model_path
 
     def configure_ssh_key(deploy_key_path):
         os.environ["GIT_SSH_COMMAND"] = f"ssh -i {deploy_key_path} -o IdentitiesOnly=yes"
@@ -36,7 +32,6 @@ def update_repository(repo_path, branch_name, commit_message, project_name, queu
 
     def archive_existing_model(repo):
         import datetime
-
         weights_path = os.path.join(repo.working_tree_dir, "weights")
         model_file = os.path.join(weights_path, "model.h5")
         if os.path.exists(model_file):
@@ -56,13 +51,9 @@ def update_repository(repo_path, branch_name, commit_message, project_name, queu
         repo.index.add([archived_model_file])
         repo.index.add([target_model_path])
 
-    def commit_and_push(repo, branch):
-        import datetime
-
-        commit_message = f"Update model: {datetime.datetime.now().strftime('%Y%m%d')}"
+    def commit_and_push(repo, branch, commit_message):
         try:
             repo.index.commit(commit_message)
-            repo.create_tag(commit_message, message="Model update")
             repo.git.push("origin", branch)
             repo.git.push("origin", "--tags")
         except GitCommandError as e:
@@ -71,19 +62,17 @@ def update_repository(repo_path, branch_name, commit_message, project_name, queu
 
     def cleanup_repo(repo_path):
         import shutil
-
         shutil.rmtree(repo_path, ignore_errors=True)
 
     repo, repo_path = clone_repo(repo_url, branch_name, deploy_key_path)
 
     try:
         # Fetch the trained model
-        model = Model(model_id=model_id)
-        model_path = model.get_local_copy()
+        model_path = get_model(model_id)
 
         # Update model file and push changes
         update_model_file(repo, model_path)
-        commit_and_push(repo, branch_name)
+        commit_and_push(repo, branch_name, commit_message)
     finally:
         cleanup_repo(repo_path)
 
@@ -113,7 +102,6 @@ if __name__ == "__main__":
         branch_name=args.branch,
         commit_message=args.commit_message,
         project_name=args.project_name,
-        model_name=args.model_name,
         queue_name=args.queue_name,
         model_id=args.model_id,
         repo_url=args.repo_url,

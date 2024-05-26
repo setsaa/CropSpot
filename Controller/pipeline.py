@@ -222,24 +222,35 @@ def create_CropSpot_pipeline(
         packages=packages,
     )
 
-    # # Step 5: Update Model in GitHub Repository
-    # pipeline.add_function_step(
-    #     name="GitHub_Update",
-    #     task_name="Update Model Weights in GitHub Repository",
-    #     function=update_repository,
-    #     function_kwargs={
-    #         "repo_path": "${pipeline.repo_path}",
-    #         "branch_name": "${pipeline.branch}",
-    #         "commit_message": "${pipeline.commit_message}",
-    #         "project_name": "${pipeline.project_name}",
-    #         "model_name": "${pipeline.model_name}",
-    #         "queue_name": "${pipeline.queue_name}",
-    #     },
-    #     task_type=Task.TaskTypes.service,
-    #     parents=["Model_Training", "Model_Evaluation"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 6: Update Model in GitHub Repository
+    pipeline.add_function_step(
+        name="GitHub_Update",
+        task_name="Update Model Weights in GitHub Repository",
+        function=update_repository,
+        function_kwargs={
+            "repo_path": "${pipeline.repo_path}",
+            "branch_name": "${pipeline.branch}",
+            "commit_message": "${pipeline.commit_message}",
+            "project_name": "${pipeline.project_name}",
+            "model_name": "${pipeline.model_name}",
+            "queue_name": "${pipeline.queue_name}",
+        },
+        task_type=Task.TaskTypes.service,
+        parents=["Model_Training", "Model_Evaluation"],
+        project_name=project_name,
+        helper_functions=[
+            get_model,
+            configure_ssh_key,
+            clone_repo,
+            ensure_archive_dir,
+            archive_existing_model,
+            update_model_file,
+            commit_and_push,
+            cleanup_repo
+        ]
+        project_name=project_name,
+        cache_executed_step=False,
+    )
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
