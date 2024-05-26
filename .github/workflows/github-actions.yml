@@ -20,13 +20,13 @@ jobs:
         - uses: actions/setup-python@v4
           with:
             python-version: '3.10'
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip clearml pandas numpy matplotlib seaborn "tensorflow<2.11" keras tqdm scikit-learn
         - name: ClearML initialization
           run: |
             cat $CLEARML_CONFIG_FILE 
             clearml-init --config $CLEARML_CONFIG_FILE
-        - name: Install dependencies
-          run: |
-            python -m pip install --upgrade pip clearml pandas numpy matplotlib seaborn "tensorflow<2.11" keras tqdm scikit-learn
         - name: Start the task
           id: launch_task
           run: |
