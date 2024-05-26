@@ -1,15 +1,20 @@
-def update_repository(repo_path, branch_name, commit_message, project_name, model_name, queue_name, model_id, repo_url, deploy_key_path):
+def update_repository(repo_path, branch_name, commit_message, project_name, queue_name, model_id, repo_url, deploy_key_path):
     from clearml import Task, Model
 
-    task = Task.create(
-        project_name=project_name,
-        task_name="GitHub Repo Update",
-        task_type=Task.TaskTypes.service,
-    )
+    task = Task.init(project_name=project_name, task_name="Update Model Weights in GitHub Repository")
     # task.execute_remotely(queue_name=queue_name, exit_process=True)
 
     import os
     from git import Repo, GitCommandError
+
+    def get_model(model_id):
+        from clearml import InputModel
+
+        input_model = InputModel(model_id=model_id, project=project_name, only_published=True)
+        input_model.connect(task=task)
+        local_model = input_model.get_local_copy()
+
+        local_model.save("model.h5")
 
     def configure_ssh_key(deploy_key_path):
         os.environ["GIT_SSH_COMMAND"] = f"ssh -i {deploy_key_path} -o IdentitiesOnly=yes"
@@ -31,6 +36,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     def archive_existing_model(repo):
         import datetime
+
         weights_path = os.path.join(repo.working_tree_dir, "weights")
         model_file = os.path.join(weights_path, "model.h5")
         if os.path.exists(model_file):
@@ -41,6 +47,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     def update_model_file(repo, model_path):
         import shutil
+
         weights_path = os.path.join(repo.working_tree_dir, "weights")
         ensure_archive_dir(repo)
         archived_model_file = archive_existing_model(repo)
@@ -51,6 +58,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     def commit_and_push(repo, branch):
         import datetime
+
         commit_message = f"Update model: {datetime.datetime.now().strftime('%Y%m%d')}"
         try:
             repo.index.commit(commit_message)
@@ -63,6 +71,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     def cleanup_repo(repo_path):
         import shutil
+
         shutil.rmtree(repo_path, ignore_errors=True)
 
     repo, repo_path = clone_repo(repo_url, branch_name, deploy_key_path)
@@ -79,6 +88,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         cleanup_repo(repo_path)
 
     print(f"Pushed changes to remote repository on branch: {branch_name}")
+
 
 if __name__ == "__main__":
     import argparse
