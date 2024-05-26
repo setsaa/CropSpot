@@ -43,11 +43,6 @@ def vgg_train(dataset_name, project_name):
     if not os.path.exists(dataset_path):
         dataset.get_mutable_local_copy(dataset_path)
 
-    # first_category = os.listdir(dataset_path)[0]
-    # first_image_file = os.listdir(f"{dataset_path}/{first_category}")[0]
-    # img = plt.imread(f"{dataset_path}/{first_category}/{first_image_file}")
-    # img_height, img_width, _ = img.shape
-    # img_size = min(img_height, img_width)
     img_size = 224
 
     batch_size = 64
@@ -161,17 +156,3 @@ def vgg_train(dataset_name, project_name):
     output_model.publish()
 
     return output_model.id
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Train a VGG model with ClearML on the preprocessed dataset")
-    parser.add_argument("--dataset_name", type=str, required=False, default="YourDatasetName", help="Name of the preprocessed dataset")
-    parser.add_argument("--project_name", type=str, required=False, default="YourProjectName", help="Name of the ClearML project")
-
-    args = parser.parse_args()
-
-    model_id = vgg_train(args.dataset_name, args.project_name)
-
-    print(f"Model trained with ID: {model_id}")

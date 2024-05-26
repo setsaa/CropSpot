@@ -85,11 +85,18 @@ if __name__ == "__main__":
         help="Commit message",
     )
     parser.add_argument(
-        "--model_name",
+        "--repo_url",
         type=str,
         required=False,
-        default="CropSpot_Model",
-        help="ClearML trained model",
+        default="",
+        help="Repository URL",
+    )
+    parser.add_argument(
+        "--deploy_key_path",
+        type=str,
+        required=False,
+        default="",
+        help="Path to the SSH deploy key",
     )
 
     # Parse the arguments
@@ -108,5 +115,6 @@ if __name__ == "__main__":
         repo_path=args.repo_path,
         branch=args.branch,
         commit_message=args.commit_message,
-        model_name=args.model_name,
+        repo_url=args.repo_url,
+        deploy_key_path=args.deploy_key_path,
     )

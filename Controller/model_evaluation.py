@@ -88,21 +88,3 @@ def evaluate_model(model_name, test_dataset, task_name, project_name):
     plt.show()
 
     return score[1]
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Evaluate the model")
-
-    # Add arguments
-    parser.add_argument("--model_name", type=str, required=False, default="Trained Models/CropSpot_Model.h5", help="Path to the trained model file")
-    parser.add_argument("--test_dataset", type=str, required=False, default="Trained Models/CropSpot_Model_History.pkl", help="Path to the training history file")
-    parser.add_argument("--task_name", type=str, required=False, default="CNN Evaluate Model", help="Name of the ClearML task")
-    parser.add_argument("--project_name", type=str, required=False, default="CropSpot", help="Name of the ClearML project")
-
-    args = parser.parse_args()
-
-    # Evaluate the model
-    evaluate_model(args.model_name, args.test_dataset, args.test_dataset)

@@ -97,29 +97,3 @@ def preprocess_dataset(dataset_name, project_name):
     processed_dataset.finalize()
 
     return processed_dataset.id, processed_dataset.name
-
-
-if __name__ == "__main__":
-    import logging
-    import argparse
-
-    # Set logging level to INFO
-    logging.basicConfig(level=logging.INFO)
-
-    # Setup arg parse
-    parser = argparse.ArgumentParser(description="Clean and preprocess data for model training.")
-    parser.add_argument("--dataset_name", type=str, default="TomatoDiseaseDatasetV2", help="Name of the raw dataset")
-    parser.add_argument("--project_name", type=str, default="CropSpot", help="Name of the project for the processed dataset")
-    parser.add_argument("--queue_name", type=str, default="helldiver", help="Name of the queue for remote execution")
-
-    # Parse command-line arguments
-    args = parser.parse_args()
-
-    # Upload preprocessed datasets
-    processed_dataset_id, processed_dataset_name = preprocess_dataset(
-        dataset_name=args.dataset_name,
-        project_name=args.project_name,
-        queue_name=args.queue_name,
-    )
-
-    print(f"Preprocessed dataset uploaded with ID: {processed_dataset_id}")

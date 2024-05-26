@@ -10,7 +10,8 @@ def create_CropSpot_pipeline(
     repo_path,
     branch,
     commit_message,
-    model_name,
+    repo_url,
+    deploy_key_path,
 ):
     """
     Create a ClearML pipeline for the CropSpot project.
@@ -51,7 +52,8 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="repo_path", default=repo_path)
     pipeline.add_parameter(name="branch", default=branch)
     pipeline.add_parameter(name="commit_message", default=commit_message)
-    pipeline.add_parameter(name="model_name", default=model_name)
+    pipeline.add_parameter(name="repo_url", default=repo_url)
+    pipeline.add_parameter(name="deploy_key_path", default=deploy_key_path)
 
     # Set the default execution queue
     pipeline.set_default_execution_queue(queue_name)
@@ -159,7 +161,6 @@ def create_CropSpot_pipeline(
         project_name=project_name,
         cache_executed_step=False,
         packages=packages,
-
     )
 
     # Step 4(b): Evaluate Model(s)
@@ -227,29 +228,20 @@ def create_CropSpot_pipeline(
         name="GitHub_Update",
         task_name="Update Model Weights in GitHub Repository",
         function=update_repository,
-        function_kwargs={
-            "repo_path": "${pipeline.repo_path}",
-            "branch_name": "${pipeline.branch}",
-            "commit_message": "${pipeline.commit_message}",
-            "project_name": "${pipeline.project_name}",
-            "model_name": "${pipeline.model_name}",
-            "queue_name": "${pipeline.queue_name}",
-        },
+        function_kwargs=dict(
+            model_id="${Model_Comparison.best_model_id}",
+            repo_path="${pipeline.repo_path}",
+            branch_name="${pipeline.branch}",
+            commit_message="${pipeline.commit_message}",
+            project_name="${pipeline.project_name}",
+            repo_url="${pipeline.repo_url}",
+            deploy_key_path="${pipeline.deploy_key_path}",
+        ),
         task_type=Task.TaskTypes.service,
-        parents=["Model_Training", "Model_Evaluation"],
-        project_name=project_name,
-        helper_functions=[
-            get_model,
-            configure_ssh_key,
-            clone_repo,
-            ensure_archive_dir,
-            archive_existing_model,
-            update_model_file,
-            commit_and_push,
-            cleanup_repo
-        ]
+        parents=["Model_Comparison"],
         project_name=project_name,
         cache_executed_step=False,
+        packages=packages,
     )
 
     # Start the pipeline

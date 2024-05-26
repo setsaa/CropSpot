@@ -17,21 +17,3 @@ def compare_models(model_name_1, model_score_1, model_name_2, model_score_2, mod
     model.connect(task=task)
 
     return model.id
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Compare the published models")
-
-    # Add arguments
-    parser.add_argument("--model_path_1", type=str, required=False, default="cropspot_resnet_model.h5", help="Path to the 1st trained model file")
-    parser.add_argument("--model_path_2", type=str, required=False, default="cropspot_densenet_model.h5", help="Path to the 2nd trained model file")
-    parser.add_argument("--model_path_3", type=str, required=False, default="cropspot_CNN_model.h5", help="Path to the 3rd trained model file")
-    parser.add_argument("--queue_name", type=str, required=False, default="helldiver", help="ClearML queue name")
-
-    args = parser.parse_args()
-
-    # Evaluate the model
-    compare_models(args.model_path_1, args.model_path_2, args.model_path_3, args.queue_name)
