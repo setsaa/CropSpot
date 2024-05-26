@@ -6,6 +6,7 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
 
     import os
     from git import Repo, GitCommandError
+    from keras.models import load_model, save_model
 
     def get_model(model_id):
         from clearml import InputModel
@@ -14,7 +15,8 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         input_model.connect(task=task)
         local_model = input_model.get_local_copy()
 
-        local_model.save("model.h5")
+        model = load_model(local_model)
+        save_model(model, "model.h5")
 
     def configure_ssh_key(deploy_key_path):
         os.environ["GIT_SSH_COMMAND"] = f"ssh -i {deploy_key_path} -o IdentitiesOnly=yes"
