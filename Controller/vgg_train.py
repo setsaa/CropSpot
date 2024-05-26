@@ -22,13 +22,13 @@ def vgg_train(dataset_name, project_name):
 
     task = Task.init(project_name=project_name, task_name="VGG Train Model")
 
-    # TEMP
-    model_file_name = "cropspot_vgg_model.h5"
-    existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
-    existing_model.connect(task=task)
-    if existing_model:
-        print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
-        return existing_model.id
+    # # TEMP
+    # model_file_name = "cropspot_vgg_model.h5"
+    # existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
+    # existing_model.connect(task=task)
+    # if existing_model:
+    #     print(f"Model '{model_file_name}' already exists in project '{project_name}'.")
+    #     return existing_model.id
 
     # Load preprocessed dataset
     prep_dataset_name = dataset_name

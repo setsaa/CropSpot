@@ -19,11 +19,11 @@ def preprocess_dataset(dataset_name, project_name):
 
     task = Task.init(project_name=project_name, task_name="Preprocess Uploaded Data")
 
-    # TEMP CHANGE
-    prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
-    if prep_dataset:
-        print(f"Preprocessed dataset '{dataset_name}_preprocessed' already exists in project '{project_name}'.")
-        return prep_dataset.id, prep_dataset.name
+    # # TEMP CHANGE
+    # prep_dataset = Dataset.get(dataset_name=dataset_name + "_preprocessed")
+    # if prep_dataset:
+    #     print(f"Preprocessed dataset '{dataset_name}_preprocessed' already exists in project '{project_name}'.")
+    #     return prep_dataset.id, prep_dataset.name
 
     # Access the raw dataset
     raw_dataset = Dataset.get(dataset_name=dataset_name)
