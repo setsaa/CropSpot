@@ -16,6 +16,8 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
         model = load_model(local_model)
         save_model(model, "model.h5")
 
+        return "model.h5"
+
     def configure_ssh_key(deploy_key_path):
         os.environ["GIT_SSH_COMMAND"] = f"ssh -i {deploy_key_path} -o IdentitiesOnly=yes"
 
