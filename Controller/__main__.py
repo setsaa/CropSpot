@@ -1,9 +1,5 @@
 import argparse
-
-# from pipeline_v2 import create_CropSpot_pipeline
-
 from pipeline import create_CropSpot_pipeline
-
 from clearml import Task
 
 if __name__ == "__main__":
@@ -36,49 +32,49 @@ if __name__ == "__main__":
         "--queue_name",
         type=str,
         required=False,
-        default="helldiver_2",
+        default="helldiver",
         help="ClearML queue name",
     )
     parser.add_argument(
-        "--model_path_1",
+        "--model_name_1",
         type=str,
         required=False,
         default="cropspot_resnet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_2",
+        "--model_name_2",
         type=str,
         required=False,
         default="cropspot_densenet_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--model_path_3",
+        "--model_name_3",
         type=str,
         required=False,
-        default="cropspot_CNN_model.h5",
+        default="cropspot_vgg_model.h5",
         help="Local model path",
     )
     parser.add_argument(
-        "--test_data_dir",
+        "--test_dataset",
         type=str,
         required=False,
-        default="Dataset/Preprocessed",
+        default="TomatoDiseaseDatasetV2_test",
         help="Directory containing test data",
     )
     parser.add_argument(
         "--repo_path",
         type=str,
         required=False,
-        default=".",
+        default="cropspot_app",
         help="Path to the local Git repository",
     )
     parser.add_argument(
         "--branch",
         type=str,
         required=False,
-        default="Crop-33-Deploy-MLOPs-pipeline",
+        default="main",
         help="The branch to commit and push changes to",
     )
     parser.add_argument(
@@ -89,11 +85,17 @@ if __name__ == "__main__":
         help="Commit message",
     )
     parser.add_argument(
-        "--model_name",
+        "--repo_url",
         type=str,
         required=False,
-        default="CropSpot_Model",
-        help="ClearML trained model",
+        default="https://github.com/AI-Studio-Helldiver/Cropspot_App",
+        help="Repository URL",
+    )
+    parser.add_argument(
+        "--deploy_key_path",
+        required=False,
+        default="my-deploy-key",
+        help="Path to the SSH deploy key",
     )
 
     # Parse the arguments
@@ -105,12 +107,13 @@ if __name__ == "__main__":
         project_name=args.project_name,
         dataset_name=args.dataset_name,
         queue_name=args.queue_name,
-        model_name_1=args.model_path_1,
-        model_name_2=args.model_path_2,
-        model_name_3=args.model_path_3,
-        test_data_dir=args.test_data_dir,
+        model_name_1=args.model_name_1,
+        model_name_2=args.model_name_2,
+        model_name_3=args.model_name_3,
+        test_dataset=args.test_dataset,
         repo_path=args.repo_path,
         branch=args.branch,
         commit_message=args.commit_message,
-        model_name=args.model_name,
+        repo_url=args.repo_url,
+        deploy_key_path=args.deploy_key_path,
     )

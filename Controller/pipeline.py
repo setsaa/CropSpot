@@ -6,11 +6,12 @@ def create_CropSpot_pipeline(
     model_name_1,
     model_name_2,
     model_name_3,
-    test_data_dir,
+    test_dataset,
     repo_path,
     branch,
     commit_message,
-    model_name,
+    repo_url,
+    deploy_key_path,
 ):
     """
     Create a ClearML pipeline for the CropSpot project.
@@ -30,10 +31,12 @@ def create_CropSpot_pipeline(
     from preprocess_data import preprocess_dataset
     from resnet_train import resnet_train
     from densenet_train import densenet_train
-    from cnn_train import custom_cnn_train
+    from vgg_train import vgg_train
     from model_evaluation import evaluate_model
     from compare_models import compare_models
     from update_model import update_repository
+
+    packages = ["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "keras-tuner", "tqdm", "clearml", "scikit-learn"]
 
     # Initialize a new pipeline controller task
     pipeline = PipelineController(name=pipeline_name, project=project_name, add_pipeline_tags=True, target_project=project_name, auto_version_bump=True)
@@ -45,11 +48,12 @@ def create_CropSpot_pipeline(
     pipeline.add_parameter(name="model_name_1", default=model_name_1)
     pipeline.add_parameter(name="model_name_2", default=model_name_2)
     pipeline.add_parameter(name="model_name_3", default=model_name_3)
-    pipeline.add_parameter(name="test_data_dir", default=test_data_dir)
+    pipeline.add_parameter(name="test_dataset", default=test_dataset)
     pipeline.add_parameter(name="repo_path", default=repo_path)
     pipeline.add_parameter(name="branch", default=branch)
     pipeline.add_parameter(name="commit_message", default=commit_message)
-    pipeline.add_parameter(name="model_name", default=model_name)
+    pipeline.add_parameter(name="repo_url", default=repo_url)
+    pipeline.add_parameter(name="deploy_key_path", default=deploy_key_path)
 
     # Set the default execution queue
     pipeline.set_default_execution_queue(queue_name)
@@ -60,16 +64,16 @@ def create_CropSpot_pipeline(
         task_name="Upload Raw Data",
         function=upload_dataset,
         function_kwargs=dict(
-            project_name="${pipeline.project_name}",
             dataset_name="${pipeline.dataset_name}",
+            project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["raw_dataset_id", "raw_dataset_name"],
         helper_functions=[download_dataset],
         parents=None,
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 2: Preprocess Data
@@ -78,15 +82,15 @@ def create_CropSpot_pipeline(
         task_name="Preprocess Uploaded Data",
         function=preprocess_dataset,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Upload.raw_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.data_processing,
         function_return=["processed_dataset_id", "processed_dataset_name"],
         parents=["Data_Upload"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 3(a): Train Model(s)
@@ -95,15 +99,15 @@ def create_CropSpot_pipeline(
         task_name="ResNet Train Model",
         function=resnet_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["resnet_model_id"],
         parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 3(b): Train Model(s)
@@ -112,32 +116,32 @@ def create_CropSpot_pipeline(
         task_name="DenseNet Train Model",
         function=densenet_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
         function_return=["densenet_model_id"],
-        parents=["Data_Preprocessing", "ResNet_Model_Training"],
+        parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 3(c): Train Model(s)
     pipeline.add_function_step(
-        name="CNN_Model_Training",
-        task_name="CNN Train Model",
-        function=custom_cnn_train,
+        name="VGG_Model_Training",
+        task_name="VGG Train Model",
+        function=vgg_train,
         function_kwargs=dict(
-            dataset_name="${pipeline.dataset_name}",
+            dataset_name="${Data_Preprocessing.processed_dataset_name}",
             project_name="${pipeline.project_name}",
         ),
         task_type=Task.TaskTypes.training,
-        function_return=["cnn_model_id"],
-        parents=["Data_Preprocessing", "DenseNet_Model_Training"],
+        function_return=["VGG_model_id"],
+        parents=["Data_Preprocessing"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 4(a): Evaluate Model(s)
@@ -145,17 +149,18 @@ def create_CropSpot_pipeline(
         name="ResNet_Model_Evaluation",
         task_name="ResNet Evaluate Model",
         function=evaluate_model,
-        function_kwargs={
-            "model_name": "${pipeline.model_name_1}",
-            "test_data_dir": "${pipeline.test_data_dir}",
-            "task_name": "ResNet Evaluate Model",
-        },
+        function_kwargs=dict(
+            model_name="${pipeline.model_name_1}",
+            test_dataset="${pipeline.test_dataset}",
+            project_name="${pipeline.project_name}",
+            task_name="ResNet Evaluate Model",
+        ),
         task_type=Task.TaskTypes.testing,
-        function_return=["f1_score"],
+        function_return=["test_accuracy"],
         parents=["ResNet_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 4(b): Evaluate Model(s)
@@ -163,35 +168,37 @@ def create_CropSpot_pipeline(
         name="DenseNet_Model_Evaluation",
         task_name="DenseNet Evaluate Model",
         function=evaluate_model,
-        function_kwargs={
-            "model_name": "${pipeline.model_name_2}",
-            "test_data_dir": "${pipeline.test_data_dir}",
-            "task_name": "ResNet Evaluate Model",
-        },
+        function_kwargs=dict(
+            model_name="${pipeline.model_name_2}",
+            test_dataset="${pipeline.test_dataset}",
+            project_name="${pipeline.project_name}",
+            task_name="DenseNet Evaluate Model",
+        ),
         task_type=Task.TaskTypes.testing,
-        function_return=["f1_score"],
+        function_return=["test_accuracy"],
         parents=["DenseNet_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 4(c): Evaluate Model(s)
     pipeline.add_function_step(
-        name="CNN_Model_Evaluation",
-        task_name="CNN Evaluate Model",
+        name="VGG_Model_Evaluation",
+        task_name="VGG Evaluate Model",
         function=evaluate_model,
-        function_kwargs={
-            "model_name": "${pipeline.model_name_3}",
-            "test_data_dir": "${pipeline.test_data_dir}",
-            "task_name": "ResNet Evaluate Model",
-        },
+        function_kwargs=dict(
+            model_name="${pipeline.model_name_3}",
+            test_dataset="${pipeline.test_dataset}",
+            project_name="${pipeline.project_name}",
+            task_name="VGG Evaluate Model",
+        ),
         task_type=Task.TaskTypes.testing,
-        function_return=["f1_score"],
-        parents=["CNN_Model_Training"],
+        function_return=["test_accuracy"],
+        parents=["VGG_Model_Training"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
     # Step 5: Compare Model(s)
@@ -199,148 +206,45 @@ def create_CropSpot_pipeline(
         name="Model_Comparison",
         task_name="Compare Models",
         function=compare_models,
-        function_kwargs={
-            "model_name_1": "${pipeline.model_name_1}",
-            "model_name_2": "${pipeline.model_name_2}",
-            "model_name_3": "${pipeline.model_name_3}",
-        },
+        function_kwargs=dict(
+            model_name_1="${pipeline.model_name_1}",
+            model_score_1="${ResNet_Model_Evaluation.test_accuracy}",
+            model_name_2="${pipeline.model_name_2}",
+            model_score_2="${DenseNet_Model_Evaluation.test_accuracy}",
+            model_name_3="${pipeline.model_name_3}",
+            model_score_3="${VGG_Model_Evaluation.test_accuracy}",
+            project_name="${pipeline.project_name}",
+        ),
         task_type=Task.TaskTypes.service,
-        parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "CNN_Model_Evaluation"],
+        function_return=["best_model_id"],
+        parents=["ResNet_Model_Evaluation", "DenseNet_Model_Evaluation", "VGG_Model_Evaluation"],
         project_name=project_name,
-        cache_executed_step=True,
-        packages=["pandas", "numpy", "matplotlib", "seaborn", "tensorflow<2.11", "keras", "tqdm", "clearml", "scikit-learn"],
+        cache_executed_step=False,
+        packages=packages,
     )
 
-    # # Step 5: Update Model in GitHub Repository
-    # pipeline.add_function_step(
-    #     name="GitHub_Update",
-    #     task_name="Update Model Weights in GitHub Repository",
-    #     function=update_repository,
-    #     function_kwargs={
-    #         "repo_path": "${pipeline.repo_path}",
-    #         "branch_name": "${pipeline.branch}",
-    #         "commit_message": "${pipeline.commit_message}",
-    #         "project_name": "${pipeline.project_name}",
-    #         "model_name": "${pipeline.model_name}",
-    #         "queue_name": "${pipeline.queue_name}",
-    #     },
-    #     task_type=Task.TaskTypes.service,
-    #     parents=["Model_Training", "Model_Evaluation"],
-    #     project_name=project_name,
-    #     cache_executed_step=False,
-    # )
+    # Step 6: Update Model in GitHub Repository
+    pipeline.add_function_step(
+        name="GitHub_Update",
+        task_name="Update Model Weights in GitHub Repository",
+        function=update_repository,
+        function_kwargs=dict(
+            model_id="${Model_Comparison.best_model_id}",
+            project_name="${pipeline.project_name}",
+            repo_url="${pipeline.repo_url}",
+            repo_path="${pipeline.repo_path}",
+            branch_name="${pipeline.branch}",
+            commit_message="${pipeline.commit_message}",
+            deploy_key_path="${pipeline.deploy_key_path}",
+        ),
+        task_type=Task.TaskTypes.service,
+        parents=["Model_Comparison"],
+        project_name=project_name,
+        cache_executed_step=False,
+        packages=packages,
+    )
 
     # Start the pipeline
     print("CropSpot Data Pipeline initiated. Check ClearML for progress.")
-    pipeline.start(queue="helldiver")
-    # pipeline.start_locally(run_pipeline_steps_locally=True)
 
-
-if __name__ == "__main__":
-    import argparse
-
-    # Create the parser
-    parser = argparse.ArgumentParser(description="Run CropSpot Pipeline")
-
-    # Add arguments
-    parser.add_argument(
-        "--pipeline_name",
-        type=str,
-        required=False,
-        default="CropSpot Pipeline",
-        help="Name of the pipeline",
-    )
-    parser.add_argument(
-        "--project_name",
-        type=str,
-        required=False,
-        default="CropSpot",
-        help="Project name for datasets",
-    )
-    parser.add_argument(
-        "--dataset_name",
-        type=str,
-        required=False,
-        default="TomatoDiseaseDatasetV2",
-        help="Name for the original dataset",
-    )
-    parser.add_argument(
-        "--queue_name",
-        type=str,
-        required=False,
-        default="helldiver_2",
-        help="ClearML queue name",
-    )
-    parser.add_argument(
-        "--model_name_1",
-        type=str,
-        required=False,
-        default="cropspot_resnet_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--model_name_2",
-        type=str,
-        required=False,
-        default="cropspot_densenet_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--model_name_3",
-        type=str,
-        required=False,
-        default="cropspot_CNN_model.h5",
-        help="Local model path",
-    )
-    parser.add_argument(
-        "--test_data_dir",
-        type=str,
-        required=False,
-        default="Dataset/Preprocessed",
-        help="Directory containing test data",
-    )
-    parser.add_argument(
-        "--repo_path",
-        type=str,
-        required=False,
-        default=".",
-        help="Path to the local Git repository",
-    )
-    parser.add_argument(
-        "--branch",
-        type=str,
-        required=False,
-        default="Crop-33-Deploy-MLOPs-pipeline",
-        help="The branch to commit and push changes to",
-    )
-    parser.add_argument(
-        "--commit_message",
-        type=str,
-        required=False,
-        default="Automated commit of model changes",
-        help="Commit message",
-    )
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        required=False,
-        default="CropSpot_Model",
-        help="ClearML trained model",
-    )
-
-    # Parse the arguments
-    args = parser.parse_args()
-
-    # Call the function with the parsed arguments
-    create_CropSpot_pipeline(
-        pipeline_name=args.pipeline_name,
-        project_name=args.project_name,
-        dataset_name=args.dataset_name,
-        queue_name=args.queue_name,
-        model_name=args.model_name,
-        test_data_dir=args.test_data_dir,
-        repo_path=args.repo_path,
-        branch=args.branch,
-        commit_message=args.commit_message,
-        model_name=args.model_name,
-    )
+    pipeline.start(queue=queue_name)

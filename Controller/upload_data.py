@@ -115,23 +115,3 @@ def download_dataset(dataset_dir, dataset_name):
 
     else:
         raise ValueError(f"Failed to download the dataset. HTTP response code: {response.status_code}")
-
-
-if __name__ == "__main__":
-    import argparse
-
-    # Initialize argument parser
-    parser = argparse.ArgumentParser(description="Upload Dataset Directory to ClearML")
-
-    # Add arguments
-    parser.add_argument("--project_name", type=str, required=True, help="ClearML project name")
-    parser.add_argument("--dataset_name", type=str, required=True, help="ClearML dataset name")
-    parser.add_argument("--queue_name", type=str, default="default", help="ClearML queue name")
-
-    # Parse command-line arguments
-    args = parser.parse_args()
-
-    # Call function with the parsed arguments
-    dataset_id, dataset_name = upload_dataset(args.project_name, args.dataset_name, args.queue_name)
-
-    print(f"Dataset uploaded with ID: {dataset_id} and name: {dataset_name}")

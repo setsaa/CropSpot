@@ -1,9 +1,9 @@
-def resnet_train(dataset_name, project_name):
+def vgg_train(dataset_name, project_name):
     """
-    Train the CropSpot model using the preprocessed dataset.
+    Train the model using VGG architecture with preprocessed dataset.
 
     Args:
-        preprocessed_dataset_name (str): Name of the preprocessed dataset
+        dataset_name (str): Name of the preprocessed dataset
         project_name (str): Name of the ClearML project
 
     Returns:
@@ -11,23 +11,23 @@ def resnet_train(dataset_name, project_name):
     """
     from clearml import Task, Dataset, OutputModel, InputModel
 
-    task = Task.init(project_name=project_name, task_name="ResNet Train Model")
+    task = Task.init(project_name=project_name, task_name="VGG Train Model")
 
     import os
     import matplotlib.pyplot as plt
     from keras.models import Model
-    from keras.callbacks import LambdaCallback
-    from keras.preprocessing.image import ImageDataGenerator
-    from keras.applications import ResNet50V2
     from keras.layers import GlobalAveragePooling2D, Dense, BatchNormalization, Activation, Dropout
+    from keras.optimizers import Adam
+    from keras.callbacks import EarlyStopping, ReduceLROnPlateau, LambdaCallback
     from keras.regularizers import L2
     from keras.optimizers import Adam, RMSprop, SGD
     from keras_tuner import HyperModel, HyperParameters
     from keras_tuner.tuners import Hyperband
-    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from keras.applications import VGG19
+    from keras.preprocessing.image import ImageDataGenerator
 
     # TEMP
-    model_file_name = "cropspot_resnet_model.h5"
+    model_file_name = "cropspot_vgg_model.h5"
     existing_model = InputModel(name=model_file_name[:-3], project=project_name, only_published=True)
     existing_model.connect(task=task)
     if existing_model:
@@ -45,10 +45,8 @@ def resnet_train(dataset_name, project_name):
 
     img_size = 224
 
-    # Set batch size
     batch_size = 64
 
-    # Data augmentation and preprocessing
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
         validation_split=0.2,
@@ -59,19 +57,19 @@ def resnet_train(dataset_name, project_name):
 
     num_classes = len(train_generator.class_indices)
 
-    class ResNetHyperModel(HyperModel):
+    class VggHyperModel(HyperModel):
         def __init__(self, input_shape, num_classes):
             self.input_shape = input_shape
             self.num_classes = num_classes
 
         def build(self, hp):
-            base_resNet_model = ResNet50V2(weights="imagenet", include_top=False, input_shape=self.input_shape)
+            base_vgg_model = VGG19(weights="imagenet", include_top=False, input_shape=self.input_shape)
 
             # Freeze the base model
-            for layer in base_resNet_model.layers:
+            for layer in base_vgg_model.layers:
                 layer.trainable = False
 
-            x = base_resNet_model.output
+            x = base_vgg_model.output
             x = GlobalAveragePooling2D()(x)
 
             # Hyperparameters for the fully connected layers
@@ -92,7 +90,7 @@ def resnet_train(dataset_name, project_name):
 
             predictions = Dense(self.num_classes, activation="softmax")(x)
 
-            model = Model(inputs=base_resNet_model.input, outputs=predictions)
+            model = Model(inputs=base_vgg_model.input, outputs=predictions)
 
             # Hyperparameter: Optimizer selection
             optimizer_name = hp.Choice("optimizer", ["adam", "rmsprop", "sgd"])
@@ -109,10 +107,9 @@ def resnet_train(dataset_name, project_name):
 
             return model
 
-    hypermodel = ResNetHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
+    hypermodel = VggHyperModel(input_shape=(img_size, img_size, 3), num_classes=num_classes)
 
-    # Setup Hyperband tuner
-    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"resnet_keras_tuner", project_name=f"resnet_tuning")
+    tuner = Hyperband(hypermodel, objective="val_accuracy", max_epochs=10, factor=3, hyperband_iterations=1, directory=f"vgg_keras_tuner", project_name=f"vgg_tuning")
 
     tuner.search_space_summary()
 
@@ -126,10 +123,10 @@ def resnet_train(dataset_name, project_name):
     print(f"Best hyperparameters: {best_hps.values}")
 
     # Build the model with the best hyperparameters and train it on the data for 50 epochs
-    resnet_model = tuner.hypermodel.build(best_hps)
+    vgg_model = tuner.hypermodel.build(best_hps)
 
     epochs = 60
-    resnet_model.fit(
+    vgg_model.fit(
         train_generator,
         epochs=epochs,
         validation_data=test_generator,
@@ -147,22 +144,15 @@ def resnet_train(dataset_name, project_name):
     )
 
     trained_model_dir = "Trained Models"
-
-    # Save and upload the model to ClearML
     if not os.path.exists(trained_model_dir):
         os.makedirs(trained_model_dir)
+    vgg_model.save(os.path.join(trained_model_dir, "cropspot_vgg_model.h5"))
 
-    model_file_name = "cropspot_resnet_model.h5"
-    resnet_model.save(os.path.join(trained_model_dir, model_file_name))
+    output_model = OutputModel(task=task, name="cropspot_vgg_model", framework="Tensorflow")
+    output_model.update_weights(os.path.join(trained_model_dir, "cropspot_vgg_model.h5"), upload_uri="https://files.clear.ml", auto_delete_file=False)
 
-    output_model = OutputModel(task=task, name="cropspot_resnet_model", framework="Tensorflow")
+    task.upload_artifact("VGG Model", artifact_object="cropspot_vgg_model.h5")
 
-    # Upload the model weights to ClearML
-    output_model.update_weights("Trained Models/cropspot_resnet_model.h5", upload_uri="https://files.clear.ml", auto_delete_file=False)
-
-    task.upload_artifact("ResNet Model", artifact_object=model_file_name)
-
-    # Make sure the model is accessible
     output_model.publish()
 
     return output_model.id
