@@ -45,7 +45,8 @@ def update_repository(repo_path, branch_name, commit_message, project_name, mode
             archive_dir = os.path.join(repo.working_tree_dir, "archive")
             os.makedirs(archive_dir, exist_ok=True)
             today = datetime.date.today().strftime("%Y%m%d")
-            archived_model_file = os.path.join(archive_dir, f"model-{today}.h5")
+            current_time = datetime.datetime.now().strftime("%H%M%S")
+            archived_model_file = os.path.join(archive_dir, f"model-{today}-{current_time}.h5")
             os.rename(model_file, archived_model_file)
             return archived_model_file
         return None
